@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Sandip · Amazon Business Dashboard</title>
+<script>try{var t=localStorage.getItem("dash_theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
   :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#2a3441;--text:#e6edf3;--text2:#8b949e;--accent:#4ade80;--red:#f85149;--amber:#f0a020;--blue:#58a6ff;--pos:#4ade80;--neg:#f85149;--warn:#f0a020;--mono:'IBM Plex Mono',monospace;--sans:'Space Grotesk',sans-serif;}
@@ -104,17 +105,27 @@
     .controls input{width:130px;}
   }
 
+  html[data-theme="light"]{--bg:#f5f7fa;--panel:#ffffff;--panel2:#eef1f5;--border:#d5dbe3;--text:#1a2230;--text2:#5b6675;--accent:#15803d;--red:#dc2626;--amber:#b45309;--blue:#1d4ed8;--pos:#15803d;--neg:#dc2626;--warn:#b45309;color-scheme:light;}
+  html[data-theme="light"] header{background:linear-gradient(180deg,#ffffff,#f5f7fa);}
+  html[data-theme="light"] #notifPanel{box-shadow:0 8px 28px rgba(0,0,0,.15);}
+  html[data-theme="light"] .kpi .value:not(.pos):not(.neg):not(.warn){color:var(--text);}
+  #themeBtn{background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:7px 11px;border-radius:7px;cursor:pointer;font-size:15px;line-height:1;}
+  #themeBtn:hover{border-color:var(--accent);}
+
   @media(max-width:768px){
     html,body{-webkit-text-size-adjust:100%;overflow-x:hidden;}
     body{font-size:13px;padding-bottom:env(safe-area-inset-bottom);}
-    header{position:sticky;top:0;padding:10px 12px calc(10px) 12px;padding-top:calc(10px + env(safe-area-inset-top));flex-direction:column;align-items:stretch;gap:8px;}
+    header{position:relative;top:0;padding:10px 12px calc(10px) 12px;padding-top:calc(10px + env(safe-area-inset-top));flex-direction:column;align-items:stretch;gap:8px;}
     header h1{font-size:15px;text-align:center;}
-    .hright{display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;}
+    .hright{display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:center;}
     .hright .meta{grid-column:1/-1;order:9;text-align:center;font-size:10.5px;}
-    #acctFilter{width:100%;min-width:0;font-size:16px;padding:8px 10px;}
+    .hright{grid-template-columns:auto auto 1fr auto !important;}
+    #acctFilter{grid-column:1/-1;width:100%;min-width:0;font-size:16px;padding:8px 10px;}
     .hright button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:12.5px;min-height:38px;}
-    #notifPanel{position:fixed;top:auto;bottom:0;left:0;right:0;width:100%;max-height:75vh;border-radius:16px 16px 0 0;}
-    nav{position:sticky;top:var(--hdrH,96px);z-index:9;padding:0;}
+    #notifPanel{position:fixed;top:calc(var(--bellB,90px) + 8px);bottom:auto;left:8px;right:8px;width:auto;max-height:65vh;border-radius:12px;z-index:200;overflow:visible;}
+    #notifPanel #notifList{max-height:calc(65vh - 46px);overflow-y:auto;}
+    #notifPanel::before{content:'';position:absolute;top:-7px;left:var(--bellX,50%);width:12px;height:12px;background:var(--panel2);border-left:1px solid var(--border);border-top:1px solid var(--border);transform:translateX(-50%) rotate(45deg);}
+    nav{position:sticky;top:0;z-index:9;padding:0;padding-top:env(safe-area-inset-top);}
     #navGroups{padding:8px 10px 0;gap:5px;scrollbar-width:none;}
     #navTabs{padding:6px 10px;gap:4px;scrollbar-width:none;}
     #navGroups::-webkit-scrollbar,#navTabs::-webkit-scrollbar{display:none;}
@@ -160,6 +171,7 @@
   <div class="hright">
     <select id="acctFilter" onchange="onAcctChange()"><option value="">All Accounts</option></select>
     <div class="meta" id="meta">loading…</div>
+    <button id="themeBtn" onclick="toggleTheme()" title="Light / Dark">☀️</button>
     <button id="notifBtn" onclick="toggleNotif()">🔔<span id="notifBadge" style="display:none">0</span></button>
     <button id="refreshBtn" onclick="loadAll()">↻ Refresh</button>
       <button onclick="authLogout()" title="Logout">⎋ Logout</button>
@@ -1741,6 +1753,7 @@ authStart();
 setInterval(loadAll,10*60*1000);
 </script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});</script>
-<script>(function(){function f(){var h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hdrH",h.offsetHeight+"px");}addEventListener("resize",f);addEventListener("load",f);setInterval(f,2000);f();})();</script>
+<script>(function(){function f(){var h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hdrH",h.offsetHeight+"px");var b=document.getElementById("notifBtn");if(b){var r=b.getBoundingClientRect(),s=document.documentElement.style;s.setProperty("--bellB",r.bottom+"px");s.setProperty("--bellX",(r.left+r.width/2-8)+"px");}}document.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("#notifBtn"))f();},true);addEventListener("resize",f);addEventListener("load",f);setInterval(f,2000);f();})();</script>
+<script>function toggleTheme(){var d=document.documentElement,l=d.getAttribute("data-theme")!=="light";if(l)d.setAttribute("data-theme","light");else d.removeAttribute("data-theme");try{localStorage.setItem("dash_theme",l?"light":"dark");}catch(e){}var b=document.getElementById("themeBtn");if(b)b.textContent=l?"🌙":"☀️";var m=document.querySelector("meta[name=theme-color]");if(m)m.content=l?"#ffffff":"#0b0f17";}(function(){var l=document.documentElement.getAttribute("data-theme")==="light";var b=document.getElementById("themeBtn");if(b)b.textContent=l?"🌙":"☀️";var m=document.querySelector("meta[name=theme-color]");if(m&&l)m.content="#ffffff";})();</script>
 </body>
 </html>
