@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0f17">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Sandip · Amazon Business Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#2a3441;--text:#e6edf3;--text2:#8b949e;--accent:#4ade80;--red:#f85149;--amber:#f0a020;--blue:#58a6ff;--pos:#4ade80;--neg:#f85149;--warn:#f0a020;--mono:'IBM Plex Mono',monospace;--sans:'Space Grotesk',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;}
+  header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,#161b22,#0d1117);position:sticky;top:0;z-index:10;}
+  header h1{font-size:18px;font-weight:600;letter-spacing:-0.3px;}
+  header h1 span{color:var(--accent);}
+  .hright{display:flex;align-items:center;gap:12px;}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--text2);text-align:right;}
+  #acctFilter{background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:7px 11px;border-radius:7px;font-family:var(--sans);font-size:13px;}
+  #acctFilter:focus{border-color:var(--accent);outline:none;}
+  #refreshBtn{background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-size:13px;}
+  #refreshBtn:hover{border-color:var(--accent);color:var(--accent);}
+  #notifBtn{position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:7px 11px;cursor:pointer;font-size:16px;line-height:1;}
+  #notifBtn:hover{border-color:var(--accent);}
+  #notifBadge{position:absolute;top:-6px;right:-6px;background:var(--neg);color:#fff;border-radius:50%;font-size:10px;font-weight:700;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-family:var(--sans);}
+  #notifPanel{display:none;position:absolute;top:64px;right:20px;width:400px;max-height:500px;overflow-y:auto;background:var(--panel2);border:1px solid var(--border);border-radius:12px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+  #notifPanel.open{display:block;}
+  .notif-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .notif-item:last-child{border-bottom:none;}
+  .notif-item:hover{background:var(--panel);}
+  .notif-item.unread{border-left:3px solid var(--neg);}
+  .notif-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+  .notif-body{font-size:12px;color:var(--text2);}
+  .notif-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .notif-header span{font-size:13px;font-weight:600;}
+  .notif-header button{font-size:11px;background:none;border:none;color:var(--accent);cursor:pointer;}
+  nav{background:var(--panel);border-bottom:1px solid var(--border);}
+  #navGroups{display:flex;gap:6px;padding:10px 28px 0;overflow-x:auto;}
+  #navGroups button{background:var(--panel2);border:1px solid var(--border);border-bottom:none;color:var(--text2);padding:9px 18px;border-radius:9px 9px 0 0;cursor:pointer;font-family:var(--sans);font-size:13.5px;font-weight:600;white-space:nowrap;}
+  #navGroups button:hover{color:var(--text);}
+  #navGroups button.active{color:var(--accent);background:var(--bg);border-color:var(--accent);}
+  #navTabs{display:flex;gap:3px;padding:7px 28px;overflow-x:auto;background:var(--bg);border-top:1px solid var(--border);}
+  #navTabs button{background:none;border:none;color:var(--text2);padding:7px 14px;cursor:pointer;font-family:var(--sans);font-size:13px;border-radius:7px;white-space:nowrap;}
+  #navTabs button:hover{color:var(--text);background:var(--panel2);}
+  #navTabs button.active{color:var(--accent);background:var(--panel2);font-weight:600;}
+  main{padding:24px 28px;}
+  .view{display:none;}.view.active{display:block;animation:fade .3s;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:26px;}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;}
+  .kpi::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent);}
+  .kpi.red::before{background:var(--red);}.kpi.amber::before{background:var(--amber);}.kpi.blue::before{background:var(--blue);}
+  .kpi .label{font-size:12px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
+  .kpi .value{font-size:28px;font-weight:600;font-family:var(--mono);letter-spacing:-1px;}
+  .kpi .sub{font-size:12px;color:var(--text2);margin-top:5px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden;}
+  .card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .card-head h2{font-size:15px;font-weight:600;}
+  .card-head .hint{font-size:12px;color:var(--text2);}
+  .controls{padding:12px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);}
+  .controls input,.controls select{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:7px;font-family:var(--sans);font-size:13px;}
+  .controls input{width:200px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:11px 16px;color:var(--text2);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--panel);}
+  th.num,td.num{text-align:right;}
+  td{padding:11px 16px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  td.num{font-family:var(--mono);}
+  tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--panel2);}
+  .table-scroll{max-height:600px;overflow:auto;width:100%;}
+  .table-scroll table{min-width:100%;border-collapse:collapse;white-space:nowrap;}
+  .table-scroll td, .table-scroll th{max-width:280px;overflow:hidden;text-overflow:ellipsis;}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--mono);}
+  .p-now{background:rgba(248,81,73,.15);color:var(--red);}
+  .p-soon{background:rgba(240,160,32,.15);color:var(--amber);}
+  .p-ok{background:rgba(74,222,128,.12);color:var(--accent);}
+  .p-none{background:rgba(139,148,158,.12);color:var(--text2);}
+  .pos{color:var(--accent);}.neg{color:var(--red);}.warn{color:var(--amber);}
+  .bar{height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:5px;}
+  .bar>div{height:100%;background:var(--accent);}
+  .loading{padding:60px;text-align:center;color:var(--text2);font-family:var(--mono);}
+  .err{padding:20px;color:var(--red);font-family:var(--mono);font-size:13px;}
+  .neg-stock{color:var(--red);font-weight:600;}
+  a.asin{color:var(--blue);text-decoration:none;font-family:var(--mono);}
+  a.asin:hover{text-decoration:underline;}
+  .spark{display:flex;align-items:flex-end;gap:3px;height:50px;}
+  .spark div{flex:1;background:var(--accent);opacity:.7;border-radius:2px 2px 0 0;min-height:2px;}
+  .spark div:hover{opacity:1;}
+  .gup{color:var(--accent);}.gdown{color:var(--red);}
+  @media(max-width:768px){
+    header{padding:12px 14px;flex-wrap:wrap;gap:8px;}
+    header h1{font-size:15px;}
+    main{padding:14px 12px;}
+    nav{padding:0 8px;}
+    nav button{padding:11px 12px;font-size:12.5px;}
+    .kpis{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+    .kpi{padding:14px 14px;}
+    .kpi .value{font-size:21px;}
+    #notifPanel{width:calc(100vw - 24px);right:12px;}
+    .controls input{width:130px;}
+  }
+</style>
+</head>
+<body>
+<div id="lockScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div style="font-size:22px;font-weight:600">SANDIP · <span style="color:var(--accent)">Amazon Business</span></div>
+  <div style="color:var(--text2);font-size:13px">Email aur password se login karo</div>
+  <input id="lockEmail" type="email" autocomplete="username" placeholder="Email" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:12px 16px;border-radius:9px;font-size:16px;width:240px;text-align:center">
+  <input id="lockInput" type="password" autocomplete="current-password" placeholder="Password" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:12px 16px;border-radius:9px;font-size:16px;width:240px;text-align:center" onkeydown="if(event.key==='Enter')tryUnlock()">
+  <button onclick="tryUnlock()" style="background:var(--accent);color:#000;border:none;padding:11px 34px;border-radius:9px;cursor:pointer;font-size:15px;font-weight:600">Kholo</button>
+  <div id="lockMsg" style="color:var(--red);font-size:13px;height:18px"></div>
+</div>
+<header>
+  <h1>SANDIP · <span>Amazon Business</span></h1>
+  <div class="hright">
+    <select id="acctFilter" onchange="onAcctChange()"><option value="">All Accounts</option></select>
+    <div class="meta" id="meta">loading…</div>
+    <button id="notifBtn" onclick="toggleNotif()">🔔<span id="notifBadge" style="display:none">0</span></button>
+    <button id="refreshBtn" onclick="loadAll()">↻ Refresh</button>
+      <button onclick="authLogout()" title="Logout">⎋ Logout</button>
+  </div>
+</header>
+<div id="notifPanel">
+  <div class="notif-header"><span>🔔 Alerts</span><button onclick="markAllRead()">Sab read karo</button></div>
+  <div id="notifList"></div>
+</div>
+<nav id="nav">
+  <div id="navGroups"></div>
+  <div id="navTabs"></div>
+</nav>
+<main>
+  <div class="view active" id="v-overview"><div class="loading">Loading…</div></div>
+  <div class="view" id="v-reorder"></div>
+  <div class="view" id="v-fba"></div>
+  <div class="view" id="v-pnl"></div>
+  <div class="view" id="v-product_pnl"></div>
+  <div class="view" id="v-slow"></div>
+  <div class="view" id="v-disputes"></div>
+  <div class="view" id="v-traffic"></div>
+  <div class="view" id="v-china"></div>
+  <div class="view" id="v-fba_inbound"></div>
+  <div class="view" id="v-returns"></div>
+  <div class="view" id="v-reimb"></div>
+  <div class="view" id="v-velocity"></div>
+  <div class="view" id="v-charges"></div>
+  <div class="view" id="v-receivable"></div>
+</main>
+<script>
+const SUPABASE_URL='https://begblflwhxbbipsmxytd.supabase.co';window.SB=SUPABASE_URL;
+
+// ── LOGIN (Supabase Auth) - GitHub version ─────────────────────
+// Sirf Sandip/Jignesh: database ke RLS niyam (is_dashboard_user) hi asli taala hain;
+// ye screen sirf login leti he. Session is browser me rehta he, Logout pe saaf.
+const AUTH_KEY='dash_sb_session';
+let authOK=false;
+function _sess(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null');}catch(e){return null;}}
+function _setSess(s){try{localStorage.setItem(AUTH_KEY,JSON.stringify(s));}catch(e){} H.Authorization='Bearer '+s.access_token; authOK=true;}
+async function authRefresh(){
+  const s=_sess(); if(!s||!s.refresh_token) return false;
+  try{
+    const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh_token})});
+    if(!r.ok) return false; _setSess(await r.json()); return true;
+  }catch(e){return false;}
+}
+function authShowLock(msg){authOK=false;document.getElementById('lockScreen').style.display='flex';if(msg)document.getElementById('lockMsg').textContent=msg;}
+async function tryUnlock(){
+  const el=document.getElementById('lockMsg');
+  const email=(document.getElementById('lockEmail').value||'').trim(), pw=document.getElementById('lockInput').value||'';
+  if(!email||!pw){el.textContent='Email aur password dono daalo';return;}
+  el.textContent='Checking…';
+  try{
+    const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+    document.getElementById('lockInput').value='';
+    if(!r.ok){el.textContent='Login nahi hua — email/password check karo';return;}
+    _setSess(await r.json()); el.textContent='';
+    document.getElementById('lockScreen').style.display='none'; await loadAll();
+  }catch(e){el.textContent='Connection nahi hua — retry karo';}
+}
+async function authLogout(){
+  const s=_sess();
+  try{if(s)await fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}});}catch(e){}
+  try{localStorage.removeItem(AUTH_KEY);localStorage.removeItem('dash_cache');}catch(e){}
+  location.reload();
+}
+async function authStart(){
+  const s=_sess();
+  if(s&&s.expires_at&&Date.now()/1000<s.expires_at-120){_setSess(s);document.getElementById('lockScreen').style.display='none';await loadAll();return;}
+  if(s&&await authRefresh()){document.getElementById('lockScreen').style.display='none';await loadAll();return;}
+  authShowLock();
+}
+setInterval(()=>{const s=_sess();if(authOK&&s&&s.expires_at&&Date.now()/1000>s.expires_at-600)authRefresh();},5*60*1000);
+const KEY='sb_publishable_HO0wPEI58Ia5k7CFOIyOhA_A6dtCsuL';window.SK=KEY;
+
+// ── SORT SYSTEM ───────────────────────────────────────────────
+const SORTS={};
+function sortTable(vid, col){
+  if(!SORTS[vid]) SORTS[vid]={col,dir:'desc'};
+  else if(SORTS[vid].col===col) SORTS[vid].dir=SORTS[vid].dir==='desc'?'asc':'desc';
+  else SORTS[vid]={col,dir:'desc'};
+  rerender();
+}
+function sorted(data, vid, defCol='', defDir='desc'){
+  if(!data||!data.length) return data;
+  const s=SORTS[vid]||{col:defCol,dir:defDir};
+  if(!s.col) return data;
+  return [...data].sort((a,b)=>{
+    let av=a[s.col], bv=b[s.col];
+    const isNum=!isNaN(parseFloat(av))&&!isNaN(parseFloat(bv));
+    if(isNum){av=parseFloat(av)||0;bv=parseFloat(bv)||0;}
+    else{av=String(av||'').toLowerCase();bv=String(bv||'').toLowerCase();}
+    if(av<bv) return s.dir==='asc'?-1:1;
+    if(av>bv) return s.dir==='asc'?1:-1;
+    return 0;
+  });
+}
+function sth(vid, col, label, defCol='', num=false){
+  const s=SORTS[vid]||{col:defCol,dir:'desc'};
+  const arrow=s.col===col?(s.dir==='desc'?' ↓':' ↑'):'';
+  return `<th onclick="sortTable('${vid}','${col}')" class="${num?'num':''}" style="cursor:pointer;user-select:none;${num?'text-align:right;':''}">${label}${arrow}</th>`;
+}
+// sthN = numeric column (right-aligned header)
+function sthN(vid, col, label, defCol=''){return sth(vid,col,label,defCol,true);}
+const H={apikey:KEY,Authorization:'Bearer '+KEY};
+
+// ── DATA KA RAASTA (9 Sep 2026) ──────────────────────────────
+// Supabase ka REST counter 4 Sep se 402 de raha he, isliye ye page apne hi PC ke
+// local server (dashboard_server.py, port 8377) se data leta he. Wahi server
+// db_bridge.py se seedha database padhta/likhta he.
+// Faisla khud-ba-khud: page localhost/LAN (http) se khula = local API.
+// Netlify (https) se khula = purana Supabase REST, hubahu jaisa pehle tha —
+// yaani REST wapas aate hi wo link bina kisi badlav ke chal padega.
+// ROLLBACK: neeche wali line ko `const API_BASE=null;` kar do — sab purana.
+const API_BASE=null;
+const DASH_TOKEN='';  // LAN pe token chalu kiya ho to yahan wahi likho
+const _tok=DASH_TOKEN?(p=>p+(p.includes('?')?'&':'?')+'token='+encodeURIComponent(DASH_TOKEN)):(p=>p);
+function readURL(path){return API_BASE?_tok(`${API_BASE}/read/${path}`):`${SUPABASE_URL}/rest/v1/${path}`;}
+function writeURL(path){return API_BASE?_tok(`${API_BASE}/write/${path}`):`${SUPABASE_URL}/rest/v1/${path}`;}
+const ACCOUNTS=['AVEDIA','BRAINLE','MULZI','ZOTIMO','ACMUST','ARKZO','PIVDO','KIDOCA','WISKA'];
+let DATA={};
+let ACCT=''; // selected account filter ('' = all)
+let QFAIL=0; // kitni queries fail hui - header me dikhta he taaki 0 ko "sab theek" na samjho
+// Network blip pe 2 baar khud retry karta he (2s, 4s ruk ke). Phir bhi fail
+// ho to null return - taaki purana data overwrite na ho.
+async function q(path){
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const r=await fetch(readURL(path),{headers:H});
+      if(r.status===401&&attempt<2&&await authRefresh())continue;
+      if(r.status===401){authShowLock('Session khatam — dobara login karo');return null;}
+      if(r.ok) return await r.json();
+      if(r.status>=500&&attempt<2){await new Promise(s=>setTimeout(s,2000*(attempt+1)));continue;}
+      QFAIL++;console.warn(`Query failed: ${path}: ${r.status}`);return null;
+    }catch(e){
+      if(attempt<2){await new Promise(s=>setTimeout(s,2000*(attempt+1)));continue;}
+      QFAIL++;console.warn(`Query error: ${path}`,e);return null;
+    }
+  }
+  return null;
+}
+function inr(n){if(n==null)return'—';const a=Math.abs(n),s=n<0?'-':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+'Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(2)+'L';if(a>=1e3)return s+'₹'+(a/1e3).toFixed(0)+'K';return s+'₹'+Math.round(a);}
+function num(n){return (n==null?0:n).toLocaleString('en-IN');}
+// local (IST) date string - toISOString UTC hota he isliye alag helper
+function localDate(dt){dt=dt||new Date();return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+function gpct(v){if(v==null)return'<span style="color:var(--text2)">—</span>';const c=v>=0?'gup':'gdown';const a=v>=0?'▲':'▼';return `<span class="${c}">${a} ${Math.abs(v)}%</span>`;}
+function fAcct(arr){return ACCT?arr.filter(x=>x.account===ACCT):arr;}
+
+// build account dropdown
+const sel=document.getElementById('acctFilter');
+ACCOUNTS.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;sel.appendChild(o);});
+function onAcctChange(){ACCT=document.getElementById('acctFilter').value;rerender();}
+
+// ── NAV: 4 groups me 15 tabs ─────────────────────────────────
+const NAV_GROUPS=[
+  {name:'🏠 Overview',tabs:[['overview','Overview']]},
+  {name:'💰 Paisa',tabs:[['pnl','P&L (Month)'],['product_pnl','Product Profit'],['charges','Amazon Charges'],['receivable','Aane Wala Paisa'],['disputes','Fee Disputes'],['reimb','Reimbursements']]},
+  {name:'📦 Stock',tabs:[['reorder','Reorder (China)'],['china','China Orders'],['fba','FBA Bhejo'],['fba_inbound','FBA Raste Me'],['slow','Phasa Stock']]},
+  {name:'📈 Sales',tabs:[['velocity','Speed (Hafta)'],['traffic','Traffic & Buy Box'],['returns','Returns & RTO']]}
+];
+const TAB_GROUP={};NAV_GROUPS.forEach((g,i)=>g.tabs.forEach(([v])=>TAB_GROUP[v]=i));
+function buildNav(){
+  document.getElementById('navGroups').innerHTML=NAV_GROUPS.map((g,i)=>`<button data-g="${i}" onclick="showGroup(${i})">${g.name}</button>`).join('');
+}
+function showGroup(i,keepTab){
+  document.querySelectorAll('#navGroups button').forEach((b,bi)=>b.classList.toggle('active',bi===i));
+  document.getElementById('navTabs').innerHTML=NAV_GROUPS[i].tabs.map(([v,l])=>`<button data-v="${v}" onclick="go('${v}')">${l}</button>`).join('');
+  if(!keepTab)go(NAV_GROUPS[i].tabs[0][0]);
+}
+function go(v){
+  const gi=TAB_GROUP[v]!=null?TAB_GROUP[v]:0;
+  const cur=[...document.querySelectorAll('#navGroups button')].findIndex(b=>b.classList.contains('active'));
+  if(cur!==gi)showGroup(gi,true);
+  document.querySelectorAll('#navTabs button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  const el=document.getElementById('v-'+v);if(el)el.classList.add('active');
+  try{localStorage.setItem('active_tab',v);}catch(e){}
+}
+buildNav();
+// Refresh ke baad wahi tab wapas khule jahan the
+go((()=>{try{return localStorage.getItem('active_tab')||'overview';}catch(e){return 'overview';}})());
+
+let LOADING=false; // ek waqt pe ek hi load - warna fail count double ginta he
+async function loadAll(){
+  if(!authOK)return;
+  if(LOADING)return;
+  LOADING=true;
+  document.getElementById('meta').textContent='loading…';
+  try{
+    QFAIL=0;
+    const _now=new Date();
+    const month=_now.getFullYear()+'-'+String(_now.getMonth()+1).padStart(2,'0')+'-01';
+    const _pm=new Date(_now.getFullYear(),_now.getMonth()-1,1);
+    const prevMonth=_pm.getFullYear()+'-'+String(_pm.getMonth()+1).padStart(2,'0')+'-01';
+    const QUERIES={
+      reorder:'reorder_analysis?order=days_of_stock.asc.nullslast',
+      pnl:'pnl_monthly?month=eq.'+month+'&order=gross_margin_pct.asc',
+      pnlPrev:'pnl_monthly?month=eq.'+prevMonth+'&order=gross_margin_pct.asc',
+      china:'china_orders?status=in.(ordered,in_transit)&order=order_date.desc',
+      newPurch:'china_unmatched_purchases',
+      recv:'account_receivables?order=total_receivable.desc',
+      trafDate:'traffic_by_date?order=report_date.desc&limit=2000',
+      daily:'daily_sales?order=order_date.desc',
+      fbaRep:'fba_replenish?order=fba_days_cover.asc.nullslast',
+      fbmFba:'fbm_to_fba?order=daily_velocity.desc',
+      growth:'sales_growth?order=rev_current.desc',
+      disputes:'fee_disputes?order=total_overcharge.desc',
+      disputeOrders:'fee_dispute_orders?order=actual_commission.desc&limit=500',
+      productPnl:'product_pnl?order=net_profit.asc&limit=2000',
+      slow:'slow_moving?order=stock_value.desc',
+      fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
+      pullLog:'system_health?order=script.asc',
+      fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
+      fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
+      amzInbound:'amazon_inbound_totals',
+      returnsSumm:'returns_summary?order=units_returned.desc&limit=200',
+      prodRatings:'product_ratings?order=total_reviews.desc&limit=1000',
+      reimbData:'reimbursements_view?order=amount_total.desc&limit=1000',
+      strandedData:'stranded_inventory?qty_stranded=gt.0&order=qty_stranded.desc',
+      compPricing:'competitive_pricing_view?order=price_diff_pct.desc&limit=500',
+      noncomp:'noncompliance_summary?order=qty_missing.desc&limit=200',
+      recvAccurate:'receivables_accurate?order=net_receivable.desc',
+      velocity:'velocity_tracker?order=week_change_pct.desc&limit=500',
+      charges:'settlement_charges?order=net_settled.desc',
+      payouts:'settlement_payouts?order=deposit_date.desc&limit=300',
+      productPnlCons:'product_pnl_consolidated?order=net_profit.desc&limit=300',
+      stateOrders:'state_orders?order=orders.desc&limit=100',
+      mappingHW:'mapping_homework?limit=200',
+      itemNames:'active_item_names?limit=1000',
+      allItemNames:'all_item_names?limit=1000',
+      removals:'removal_pending?limit=600',
+      fbaValue:'fba_stock_value?order=cogs_value.desc&limit=1000',
+      fbaCogsMiss:'fba_cogs_missing?order=fba_units.desc&limit=200',
+      fbaFresh:'fba_snapshot_freshness',
+      bbLeaks:'buy_box_leaks?order=lost_sales_est.desc.nullslast&limit=500'
+    };
+    const keys=Object.keys(QUERIES);
+    const results=await Promise.all(keys.map(k=>q(QUERIES[k])));
+    // Jo query fail hui uska purana/cached data rakho - khali se overwrite mat karo
+    const prev=DATA;
+    DATA={};
+    keys.forEach((k,i)=>{DATA[k]=results[i]!==null?results[i]:(prev[k]||[]);});
+    if(PNL_MONTH)DATA.pnlSel=await q('pnl_monthly?month=eq.'+PNL_MONTH+'&order=gross_margin_pct.asc');
+    rerender();
+    document.getElementById('meta').textContent='updated '+new Date().toLocaleString('en-IN')+(QFAIL?` · ⚠ ${QFAIL} fail — net issue, purana data dikh raha he`:'');
+    if(QFAIL)document.getElementById('meta').style.color='var(--amber)';else document.getElementById('meta').style.color='';
+    // Cache tabhi save karo jab sab (ya zyada tar) queries aayi hon - fail run se accha cache kharab na ho
+    if(QFAIL<5){try{localStorage.setItem('dash_cache',JSON.stringify(DATA));}catch(e){/* cache full - koi baat nahi */}}
+  }catch(e){document.getElementById('v-overview').innerHTML='<div class="err">Error: '+e.message+'</div>';document.getElementById('meta').textContent='error';}
+  finally{LOADING=false;}
+}
+function rerender(){renderOverview();renderReorder();renderFba();renderPnl();renderProductPnl();renderSlow();renderDisputes();renderFbaInbound();renderReturns();renderReimb();renderVelocity();renderCharges();renderChina();renderRecv();renderTraffic();updateNotifications();}
+
+// ── NOTIFICATION SYSTEM ──────────────────────────────────────
+function buildAlerts(){
+  const alerts=[];
+  const today=new Date().toISOString().slice(0,10);
+  const D=DATA;
+  
+  // Overdue FBA shipments
+  const overdue=(D.fbaOverdue||[]).filter(x=>x.alert_level==='CRITICAL');
+  if(overdue.length) alerts.push({id:'fba_critical_'+today,level:'critical',
+    title:`🚨 ${overdue.length} FBA Shipments 45+ din se received nahi`,
+    body:overdue.map(x=>`${x.account} · ${x.amazon_sku} · ${x.days_since_shipped} din`).join('\n')});
+  
+  const warn=(D.fbaOverdue||[]).filter(x=>x.alert_level==='WARNING');
+  if(warn.length) alerts.push({id:'fba_warn_'+today,level:'warning',
+    title:`⚠ ${warn.length} FBA Shipments 30+ din se pending`,
+    body:warn.map(x=>`${x.account} · ${x.amazon_sku}`).join(', ')});
+
+  // Reorder NOW
+  const reorderNow=(D.reorder||[]).filter(x=>x.status==='REORDER NOW');
+  if(reorderNow.length) alerts.push({id:'reorder_'+today,level:'warning',
+    title:`📦 ${reorderNow.length} items REORDER NOW`,
+    body:reorderNow.slice(0,5).map(x=>x.item_name).join(', ')+(reorderNow.length>5?'...':'')});
+
+  // Removal shipments jo 25+ din se delivery-confirm nahi hue (pakka atke)
+  const remStuckT=new Set();
+  (D.removals||[]).forEach(x=>{if(+x.days_since_shipped>25)remStuckT.add(x.account+'|'+x.tracking_number);});
+  if(remStuckT.size){
+    const sample=(D.removals||[]).filter(x=>+x.days_since_shipped>25).slice(0,4);
+    alerts.push({id:'rem_'+today,level:'critical',
+      title:`🔙 ${remStuckT.size} removal shipments 25+ din se nahi mile`,
+      body:sample.map(x=>`${x.vyapar_item} (${x.account}) · ${x.days_since_shipped} din · ${x.carrier||''} ${x.tracking_number||''}`).join('\n')+' — courier/Amazon se poochho'});
+  }
+
+  // SALES DATA HI PURANA HE? Sabse upar wala alarm. 4-7 Sep 2026 ko Supabase DB
+  // full ho gaya tha, har write reject ho rahi thi, log me "Run completed" phir bhi
+  // aa raha tha - 4 din tak SAARE 9 account ka data chup-chaap atka raha aur
+  // dashboard purana data dikhata raha bina kuch bole. Ab wo chup nahi rahega.
+  const lastSale=(D.daily||[]).map(x=>x.order_date).sort().pop();
+  if(lastSale){
+    const daysOld=Math.round((new Date(today)-new Date(lastSale))/86400000);
+    if(daysOld>=2) alerts.push({id:'salestale_'+today,level:'critical',
+      title:`🚨 Sales data ${daysOld} din purana he (aakhri: ${lastSale})`,
+      body:'Amazon ka data DB me save nahi ho raha. Sabse aam wajah: Supabase DB full (quota) — logs\\daily_*.log me "exceed_db_size_quota" dhoondo, aur db_maintenance.py chalao. Tab tak har number purana he.'});
+  }
+
+  // FBA snapshot purana = reorder ki ginti pe bharosa mat karo
+  const staleFba=(D.fbaFresh||[]).filter(x=>+x.days_old>=2);
+  if(staleFba.length) alerts.push({id:'fbastale_'+today,level:'critical',
+    title:`🚨 ${staleFba.length} accounts ka FBA stock data ${Math.max(...staleFba.map(x=>+x.days_old))} din purana he`,
+    body:staleFba.map(x=>`${x.account} (${x.latest_snapshot})`).join(', ')+' — daily pull check karo, tab tak REORDER ke numbers pe bharosa mat karna'});
+
+  // Naye SKUs bina mapping ke bik rahe
+  const hwSell=(D.mappingHW||[]).filter(x=>+x.units_30d>0);
+  if(hwSell.length) alerts.push({id:'maphw_'+today,level:'warning',
+    title:`🧩 ${hwSell.length} naye SKUs bina mapping ke bik rahe hain`,
+    body:hwSell.slice(0,4).map(x=>`${x.amazon_sku} (${x.account})`).join(', ')+' — Overview ke Homework card me dekho'});
+
+  // Missing units (noncompliance)
+  const nc=(D.noncomp||[]).filter(x=>+x.qty_missing>0);
+  if(nc.length) alerts.push({id:'nc_'+today,level:'critical',
+    title:`🚨 ${nc.reduce((s,x)=>s+ +x.qty_missing,0)} units missing in FBA shipments`,
+    body:nc.slice(0,3).map(x=>`${x.account}: ${x.amazon_sku} - ${x.qty_missing} missing`).join('\n')});
+
+  // Fee disputes recoverable
+  const dispTotal=Math.round((D.disputes||[]).reduce((s,x)=>s+ +x.total_overcharge,0));
+  if(dispTotal>1000) alerts.push({id:'disp_'+today,level:'warning',
+    title:`💰 ₹${dispTotal.toLocaleString('en-IN')} fee overcharge recoverable`,
+    body:`${(D.disputes||[]).length} SKUs · Amazon case file karo`});
+
+  // Stranded inventory
+  const strand=(D.strandedData||[]);
+  if(strand.length) alerts.push({id:'strand_'+today,level:'info',
+    title:`⚠ ${strand.length} SKUs stranded at Amazon FC`,
+    body:`Listing fix karo — ${strand.slice(0,3).map(x=>x.amazon_sku).join(', ')}`});
+
+  // High return rate
+  const highRet=(D.returnsSumm||[]).filter(x=>+x.return_pct>10);
+  if(highRet.length) alerts.push({id:'ret_'+today,level:'warning',
+    title:`📦 ${highRet.length} products ka return rate >10%`,
+    body:highRet.slice(0,3).map(x=>`${x.vyapar_item||x.amazon_sku}: ${x.return_pct}%`).join(', ')});
+
+  // Velocity alerts
+  const trending=(D.velocity||[]).filter(x=>x.velocity_alert==='TRENDING UP');
+  const slowing=(D.velocity||[]).filter(x=>x.velocity_alert==='SLOWING DOWN');
+  if(trending.length) alerts.push({id:'vel_up_'+today,level:'info',
+    title:`📈 ${trending.length} items fast move kar rahe hain is week`,
+    body:trending.slice(0,3).map(x=>`${x.vyapar_item} (${x.account}): +${x.week_change_pct}%`).join('\n')});
+  if(slowing.length) alerts.push({id:'vel_dn_'+today,level:'warning',
+    title:`📉 ${slowing.length} items slow ho gaye hain is week`,
+    body:slowing.slice(0,3).map(x=>`${x.vyapar_item} (${x.account}): ${x.week_change_pct}%`).join('\n')});
+  const belowCogs=(D.reimbData||[]).filter(x=>x.below_cogs);
+  if(belowCogs.length) alerts.push({id:'reimb_cogs_'+today,level:'warning',
+    title:`💸 ${belowCogs.length} reimbursements COGS se kam`,
+    body:belowCogs.slice(0,3).map(x=>`${x.amazon_sku}`).join(', ')+' — dispute karo'});
+
+  return alerts;
+}
+
+function updateNotifications(){
+  const alerts=buildAlerts();
+  const seen=JSON.parse(localStorage.getItem('notif_seen')||'[]');
+  const unread=alerts.filter(a=>!seen.includes(a.id));
+  const badge=document.getElementById('notifBadge');
+  const list=document.getElementById('notifList');
+  if(unread.length>0){badge.style.display='flex';badge.textContent=unread.length;}
+  else{badge.style.display='none';}
+  if(!list) return;
+  list.innerHTML=alerts.length?alerts.map(a=>{
+    const isUnread=!seen.includes(a.id);
+    const col=a.level==='critical'?'var(--neg)':a.level==='warning'?'#f0b429':'var(--accent)';
+    return `<div class="notif-item ${isUnread?'unread':''}" onclick="openNotif('${a.id}')" title="Click = us tab pe jao">
+      <div class="notif-title" style="color:${col}">${a.title}</div>
+      <div class="notif-body">${a.body.replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }).join(''):'<div style="padding:20px;text-align:center;color:var(--text2);font-size:13px">✓ Koi alert nahi</div>';
+}
+
+function toggleNotif(){
+  document.getElementById('notifPanel').classList.toggle('open');
+}
+function readNotif(id){
+  const seen=JSON.parse(localStorage.getItem('notif_seen')||'[]');
+  if(!seen.includes(id)) seen.push(id);
+  localStorage.setItem('notif_seen',JSON.stringify(seen));
+  updateNotifications();
+}
+// Notification pe click = us kaam wale tab pe le jao
+function notifTarget(id){
+  if(id.startsWith('fba_'))return'fba_inbound';      // overdue FBA shipments
+  if(id.startsWith('rem_'))return'fba_inbound';      // removal nahi mila
+  if(id.startsWith('reorder_'))return'reorder';
+  if(id.startsWith('nc_'))return'returns';           // FC missing units
+  if(id.startsWith('strand_'))return'returns';       // stranded
+  if(id.startsWith('ret_'))return'returns';          // high return rate
+  if(id.startsWith('disp_'))return'disputes';
+  if(id.startsWith('vel_'))return'velocity';
+  if(id.startsWith('reimb_'))return'reimb';
+  if(id.startsWith('maphw_'))return'overview';       // homework card
+  return null;
+}
+function openNotif(id){
+  readNotif(id);
+  const v=notifTarget(id);
+  if(v)go(v);
+  document.getElementById('notifPanel').classList.remove('open');
+}
+function markAllRead(){
+  const alerts=buildAlerts();
+  localStorage.setItem('notif_seen',JSON.stringify(alerts.map(a=>a.id)));
+  updateNotifications();
+  document.getElementById('notifPanel').classList.remove('open');
+}
+// Close notif panel when clicking outside
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('notifPanel');
+  const btn=document.getElementById('notifBtn');
+  if(panel&&btn&&!panel.contains(e.target)&&!btn.contains(e.target)){
+    panel.classList.remove('open');
+  }
+});
+
+function renderOverview(){
+  // pnl filtered
+  const p=fAcct(DATA.pnl);
+  // User ka faisla (13 Aug 2026): revenue GST-SAMET dikhana he (wahi number jo
+  // Amazon ke sales figures se milta he). Profit ki ginti pe koi asar nahi -
+  // GP/Net ab bhi bina-GST base se bante hain (GST sarkar ka he, profit nahi).
+  const rev=p.reduce((s,x)=>s+ +(x.revenue_incl_gst??x.revenue),0),gpf=p.reduce((s,x)=>s+ +x.gross_profit,0);
+  const net=p.reduce((s,x)=>s+ +x.net_before_opex,0)-(ACCT?0:300000);
+  const pv=fAcct(DATA.pnlPrev||[]);
+  const pRev=pv.reduce((s,x)=>s+ +(x.revenue_incl_gst??x.revenue),0),pGpf=pv.reduce((s,x)=>s+ +x.gross_profit,0);
+  const pNet=pv.reduce((s,x)=>s+ +x.net_before_opex,0)-(ACCT?0:300000);
+  // reorder/fba are item-level (no account) -> only show when All
+  const rNow=DATA.reorder.filter(x=>x.status==='REORDER NOW').length;
+  const rSoon=DATA.reorder.filter(x=>x.status==='REORDER SOON').length;
+  const recv=fAcct(DATA.recvAccurate||[]);
+  const recvTotal=recv.reduce((s,x)=>s+ +(x.net_receivable||0),0);
+  const fbaF=fAcct(DATA.fbaRep);const fbmF=fAcct(DATA.fbmFba);
+  const fbaLow=fbaF.filter(x=>x.needs_replenish).length;
+  const fbmMove=fbmF.filter(x=>x.move_to_fba).length;
+  const disputeTotal=fAcct(DATA.disputes).reduce((s,x)=>s+ +x.total_overcharge,0);
+  const disputeSkus=fAcct(DATA.disputes).length;
+  const lockedCapital=DATA.slow.reduce((s,x)=>s+ +x.stock_value,0);
+  const lockedItems=DATA.slow.length;
+  const g=fAcct(DATA.growth);
+  const gC=g.reduce((s,x)=>s+ +x.rev_current,0),gP=g.reduce((s,x)=>s+ +x.rev_prev,0);
+  const totGrowth=gP?((gC-gP)/gP*100).toFixed(1):0;
+  // yesterday only meaningful for all (daily_sales is all-accounts)
+  const d=DATA.daily;
+  const todayStr=localDate();
+  const yestStr=localDate(new Date(Date.now()-86400000));
+  const todayRow=d.find(x=>x.order_date===todayStr)||{net_revenue:0,units:0,orders:0};
+  const yest=d.find(x=>x.order_date===yestStr)||d[1]||d[0]||{net_revenue:0,units:0,orders:0};
+  const fast=[...DATA.reorder].filter(x=>+x.daily_velocity>0).sort((a,b)=>+b.daily_velocity-+a.daily_velocity).slice(0,10);
+  const spark=[...d].slice(0,30).reverse();const maxS=Math.max(...spark.map(x=>+x.net_revenue),1);
+  const rev7=[...d].slice(0,7).reduce((s,x)=>s+ +x.net_revenue,0);
+  const rev30=[...d].slice(0,30).reduce((s,x)=>s+ +x.net_revenue,0);
+  const acctNote=ACCT?` · ${ACCT}`:'';
+  document.getElementById('v-overview').innerHTML=`
+    <div class="kpis">
+      <div class="kpi"><div class="label">Revenue (month, GST samet)${acctNote}</div><div class="value">${inr(rev)}</div><div class="sub">pichhla mahina: ${inr(pRev)}</div></div>
+      <div class="kpi"><div class="label">30d Growth vs prev</div><div class="value">${gpct(+totGrowth)}</div></div>
+      <div class="kpi"><div class="label">Gross Profit</div><div class="value pos">${inr(gpf)}</div><div class="sub">${rev?(gpf/rev*100).toFixed(0):0}% margin · pichhla: ${inr(pGpf)}</div></div>
+      <div class="kpi blue"><div class="label">Net${ACCT?'':' (after OpEx)'}</div><div class="value">${inr(net)}</div><div class="sub">${ACCT?'before OpEx':'−₹3L OpEx'} · pichhla: ${inr(pNet)}</div></div>
+      ${ACCT?'':`<div class="kpi blue"><div class="label">Aaj (abhi tak)</div><div class="value">${inr(+todayRow.net_revenue)}</div><div class="sub">${num(+todayRow.units)} units · ${num(+todayRow.orders)} orders</div></div>`}
+      ${ACCT?'':`<div class="kpi"><div class="label">Yesterday Sales</div><div class="value">${inr(+yest.net_revenue)}</div><div class="sub">${num(+yest.units)} units · ${num(+yest.orders)} orders</div></div>`}
+      <div class="kpi amber" onclick="go('fba')" style="cursor:pointer" title="FBA tab kholo"><div class="label">FBA Low Stock${acctNote}</div><div class="value warn">${fbaLow}</div><div class="sub">&lt;30 days ya out of stock · ${fbmMove} FBM→FBA</div></div>
+      <div class="kpi amber" onclick="go('receivable')" style="cursor:pointer" title="Receivables tab kholo"><div class="label">Receivable${acctNote}</div><div class="value">${inr(recvTotal)}</div></div>
+      <div class="kpi red" onclick="go('disputes')" style="cursor:pointer" title="Fee Disputes tab kholo"><div class="label">Fee Disputes${acctNote}</div><div class="value neg">${inr(disputeTotal)}</div><div class="sub">${disputeSkus} SKUs · last 60 din · refunded excluded</div></div>
+      ${ACCT?'':`<div class="kpi red" onclick="go('slow')" style="cursor:pointer" title="Slow Moving tab kholo"><div class="label">Capital Locked</div><div class="value neg">${inr(lockedCapital)}</div><div class="sub">${lockedItems} slow items</div></div>`}
+      ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
+    </div>
+    ${renderHomework()}
+    ${ACCT?'':`<div class="card"><div class="card-head"><h2>Sales Trend — 30 days</h2><span class="hint">7 din: <b style="color:var(--accent)">${inr(rev7)}</b> · 30 din: <b style="color:var(--accent)">${inr(rev30)}</b> · hover = value</span></div>
+      <div style="padding:18px 20px"><div class="spark">${spark.map(x=>`<div style="height:${(+x.net_revenue/maxS*100).toFixed(0)}%" title="${x.order_date}: ${inr(+x.net_revenue)}"></div>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:6px;font-family:var(--mono)"><span>${spark[0]?.order_date||''}</span><span>${spark[spark.length-1]?.order_date||''}</span></div></div></div>`}
+    ${ACCT?'':(()=>{
+      const vmap={};(DATA.velocity||[]).forEach(v=>{vmap[v.vyapar_item]=v;});
+      return `<div class="card"><div class="card-head"><h2>Fastest Moving — top 10</h2><span class="hint">all accounts · units/day · Is Hafta = current momentum</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Item</th><th class="num">Vel/day</th><th class="num">Is Hafta</th><th class="num">90d Units</th><th class="num">Incoming</th><th class="num">WH Stock</th><th class="num">Days Left</th></tr></thead><tbody>
+      ${fast.map(x=>{
+        const v=vmap[x.item_name];
+        const tw=v?+v.this_week:null;const lw=v?+v.last_week:null;
+        const twCls=tw!=null&&lw!=null?(tw>lw?'pos':tw<lw?'neg':''):'';
+        return `<tr><td><b>${x.item_name}</b></td><td class="num pos">${(+x.daily_velocity).toFixed(1)}</td><td class="num ${twCls}">${tw!=null?num(tw)+(lw!=null?(tw>lw?' ▲':tw<lw?' ▼':''):''):'—'}</td><td class="num">${num(+x.units_90d)}</td><td class="num">${+x.in_transit>0?'+'+num(+x.in_transit):'—'}</td><td class="num ${+x.warehouse_stock<0?'neg-stock':''}">${num(+x.warehouse_stock)}</td><td class="num ${x.days_of_stock!=null&&x.days_of_stock<=30?'neg':''}">${x.days_of_stock==null?'—':x.days_of_stock}</td></tr>`;
+      }).join('')}
+      </tbody></table></div></div>`;
+    })()}
+    <div class="card"><div class="card-head"><h2>Account Performance</h2><span class="hint">current month · net before OpEx · low margin first</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Account</th><th class="num">Revenue (GST samet)</th><th class="num">Growth</th><th class="num">Units</th><th class="num">Gross</th><th class="num">Margin</th><th class="num">Net</th></tr></thead><tbody>
+      ${p && p.length ? p.map(x=>{const gr=(DATA.growth||[]).find(y=>y.account===x.account);return `<tr><td><b>${x.account}</b></td><td class="num">${inr(+(x.revenue_incl_gst??x.revenue))}</td><td class="num">${gr?gpct(+gr.rev_growth_pct):'—'}</td><td class="num">${num(+x.units)}</td><td class="num pos">${inr(+x.gross_profit)}</td><td class="num ${x.gross_margin_pct<55?'neg':x.gross_margin_pct<60?'warn':'pos'}">${x.gross_margin_pct}%</td><td class="num"><b>${inr(+x.net_before_opex)}</b></td></tr>`;}).join('') : `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text2)">Loading... (${(DATA.pnl||[]).length} rows in pnl data)</td></tr>`}
+      </tbody></table></div></div>
+    ${renderPullHealth()}
+    ${renderStateOrders()}`;
+}
+function renderHomework(){
+  // Naya product add kiya to uska "homework": (1) SKU mapping (2) Vyapar me purchase price
+  const hw=fAcct(DATA.mappingHW||[]);
+  const cogsMissing=fAcct((DATA.productPnl||[]).filter(r=>+r.cogs===0&&+r.revenue>0));
+  const fbaMiss=fAcct(DATA.fbaCogsMiss||[]);
+  if(!hw.length&&!cogsMissing.length&&!fbaMiss.length)return'';
+  return `<div class="card" style="border:1px solid var(--amber)"><div class="card-head"><h2>🧩 Naya Product Homework</h2><span class="hint">naya product? pehle mapping, phir Vyapar me purchase price — tabhi profit/reorder sahi banega</span></div>
+    ${hw.length?`<div style="padding:10px 20px 4px;font-size:13px"><b style="color:var(--amber)">Mapping baki: ${hw.length} SKUs</b> — saamne Vyapar item chuno aur <b>✔ Map</b> dabao · laal wale abhi bik rahe hain!</div>
+    <datalist id="hwDL">${[...new Set(((DATA.allItemNames&&DATA.allItemNames.length?DATA.allItemNames:DATA.itemNames)||[]).map(x=>x.item_name))].map(i=>`<option value="${i.replace(/"/g,'&quot;')}">`).join('')}</datalist>
+    <div class="table-scroll" style="max-height:300px"><table><thead><tr><th>Amazon SKU</th><th>Account</th><th>Kab se</th><th class="num">30d Units</th><th class="num">30d Revenue</th><th>Vyapar Item</th><th></th></tr></thead><tbody>
+    ${hw.map(x=>`<tr><td style="font-family:var(--mono);font-size:12px">${x.amazon_sku}</td><td>${x.account}</td><td style="font-size:12px">${x.first_seen_date}</td><td class="num ${+x.units_30d>0?'warn':''}">${+x.units_30d>0?num(+x.units_30d):'—'}</td><td class="num ${+x.revenue_30d>0?'neg':''}">${+x.revenue_30d>0?inr(+x.revenue_30d):'—'}</td>
+      <td><input list="hwDL" class="hw-item" data-sku="${x.amazon_sku.replace(/"/g,'&quot;')}" data-acct="${x.account}" placeholder="Vyapar item likho/chuno" style="${CO_INP};width:230px;padding:5px 9px"></td>
+      <td><button onclick="saveMapping(this)" style="background:var(--accent);color:#000;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">✔ Map</button></td></tr>`).join('')}
+    </tbody></table></div>`:''}
+    ${cogsMissing.length?`<div style="padding:10px 20px 4px;font-size:13px"><b style="color:var(--red)">COGS missing: ${cogsMissing.length} products</b> — Vyapar me purchase price daalo, agle sync se khud aa jayega (tab tak inka profit jhootha-zyada dikhega)</div>
+    <div class="table-scroll" style="max-height:200px"><table><thead><tr><th>Item</th><th>Account</th><th class="num">30d Units</th><th class="num">30d Revenue</th></tr></thead><tbody>
+    ${cogsMissing.map(r=>`<tr><td><b>${r.vyapar_item}</b></td><td>${r.account}</td><td class="num">${num(+r.units)}</td><td class="num">${inr(+r.revenue)}</td></tr>`).join('')}
+    </tbody></table></div>`:''}
+    ${fbaMiss.length?`<div style="padding:10px 20px 4px;font-size:13px"><b style="color:var(--amber)">FBA stock pada he par COGS nahi: ${fbaMiss.length} SKUs</b> — sahi Vyapar item se map karo (ya Vyapar me is naam ki item banake purchase price daalo)</div>
+    <datalist id="hwDL2">${[...new Set(((DATA.allItemNames&&DATA.allItemNames.length?DATA.allItemNames:DATA.itemNames)||[]).map(x=>x.item_name))].map(i=>`<option value="${i.replace(/"/g,'&quot;')}">`).join('')}</datalist>
+    <div class="table-scroll" style="max-height:320px"><table><thead><tr><th>Amazon SKU</th><th>Account</th><th class="num">FBA Units</th><th>Vyapar Item</th><th></th></tr></thead><tbody>
+    ${fbaMiss.map(x=>x.price_zero
+      ?`<tr><td style="font-family:var(--mono);font-size:12px">${x.amazon_sku}</td><td>${x.account}</td><td class="num warn">${num(+x.fba_units)}</td>
+      <td colspan="2" style="font-size:12px;color:var(--amber)">mapping sahi he (<b>${x.vyapar_item}</b>) — <b>Vyapar me purchase price 0 he</b>, wahan price daalo, agle sync pe khud aa jayega</td></tr>`
+      :`<tr><td style="font-family:var(--mono);font-size:12px">${x.amazon_sku}</td><td>${x.account}</td><td class="num warn">${num(+x.fba_units)}</td>
+      <td><input list="hwDL2" class="hw-item" data-sku="${x.amazon_sku.replace(/"/g,'&quot;')}" data-acct="${x.account}" value="${(x.vyapar_item||'').replace(/"/g,'&quot;')}" placeholder="Vyapar item likho/chuno" style="${CO_INP};width:230px;padding:5px 9px"></td>
+      <td><button onclick="saveMapping(this)" style="background:var(--accent);color:#000;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">✔ Map</button></td></tr>`).join('')}
+    </tbody></table></div>`:''}
+  </div>`;
+}
+async function saveMapping(btn){
+  const inp=btn.closest('tr').querySelector('.hw-item');
+  const item=(inp.value||'').trim();
+  const sku=inp.dataset.sku, acct=inp.dataset.acct;
+  if(!item){alert('Pehle Vyapar item likho/chuno');return;}
+  const known=new Set(((DATA.allItemNames&&DATA.allItemNames.length?DATA.allItemNames:DATA.itemNames)||[]).map(x=>x.item_name));
+  if(!known.has(item)&&!confirm(`"${item}" Vyapar ki item list me nahi mila.\nNaya naam he to pehle Vyapar me item banao (warna COGS 0 rahega).\n\nPhir bhi is naam se map karein?`))return;
+  btn.disabled=true;btn.textContent='...';
+  try{
+    const r=await fetch(writeURL('sku_master?on_conflict=account,amazon_sku'),{
+      method:'POST',
+      headers:{...H,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify([{account:acct,amazon_sku:sku,vyapar_item:item,is_active:true}])});
+    if(!r.ok){alert('Map fail: '+(await r.text()).substring(0,120));btn.disabled=false;btn.textContent='✔ Map';return;}
+    // Alert resolve karo taaki list se hat jaye
+    await fetch(writeURL(`unmapped_sku_alerts?amazon_sku=eq.${encodeURIComponent(sku)}&status=eq.pending`),{
+      method:'PATCH',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({status:'resolved'})});
+    DATA.mappingHW=await q('mapping_homework?limit=200')||[];
+    DATA.fbaCogsMiss=await q('fba_cogs_missing?order=fba_units.desc&limit=200')||[];
+    renderOverview();
+  }catch(e){alert('Network error — dobara try karo');btn.disabled=false;btn.textContent='✔ Map';}
+}
+// India tile-map: har state ek box, India ke layout me (col,row)
+const IN_TILES={'Jammu & Kashmir':[2,0,'JK'],'Ladakh':[3,0,'LA'],'Himachal Pradesh':[3,1,'HP'],'Punjab':[2,1,'PB'],'Chandigarh':[4,1,'CH'],'Uttarakhand':[4,2,'UK'],'Haryana':[3,2,'HR'],'Delhi':[3,3,'DL'],'Rajasthan':[1,3,'RJ'],'Uttar Pradesh':[4,3,'UP'],'Bihar':[5,3,'BR'],'Sikkim':[6,2,'SK'],'Arunachal Pradesh':[8,2,'AR'],'Assam':[7,3,'AS'],'Nagaland':[8,3,'NL'],'Meghalaya':[7,4,'ML'],'Manipur':[8,4,'MN'],'Tripura':[7,5,'TR'],'Mizoram':[8,5,'MZ'],'Gujarat':[0,4,'GJ'],'Madhya Pradesh':[2,4,'MP'],'Jharkhand':[5,4,'JH'],'West Bengal':[6,4,'WB'],'Dadra & Nagar Haveli':[0,5,'DN'],'Maharashtra':[1,5,'MH'],'Chhattisgarh':[3,5,'CG'],'Odisha':[4,5,'OD'],'Goa':[1,6,'GA'],'Telangana':[2,6,'TG'],'Andhra Pradesh':[3,6,'AP'],'Karnataka':[2,7,'KA'],'Kerala':[2,8,'KL'],'Tamil Nadu':[3,8,'TN'],'Puducherry':[4,8,'PY'],'Andaman & Nicobar Islands':[6,8,'AN']};
+function renderIndiaMap(rows){
+  const max=Math.max(...rows.map(r=>+r.orders),1);
+  const byState={};rows.forEach(r=>{byState[r.state]=r;});
+  const T=54,G=4;
+  let tiles='';
+  for(const [state,[c,r,code]] of Object.entries(IN_TILES)){
+    const d=byState[state];
+    const pct=d?+d.orders/max:0;
+    const bg=d?`rgba(74,222,128,${(0.12+pct*0.75).toFixed(2)})`:'var(--panel2)';
+    const fg=pct>0.45?'#04270f':'var(--text)';
+    tiles+=`<div title="${state}: ${d?num(+d.orders)+' orders · '+(d.pct||0)+'% · '+inr(+d.revenue):'0 orders'}"
+      style="position:absolute;left:${c*(T+G)}px;top:${r*(T+G)}px;width:${T}px;height:${T}px;background:${bg};border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default">
+      <div style="font-size:12px;font-weight:700;color:${fg}">${code}</div>
+      <div style="font-size:10px;color:${d?fg:'var(--text2)'}">${d?d.pct+'%':''}</div>
+    </div>`;
+  }
+  return `<div style="position:relative;width:${9*(T+G)}px;height:${9*(T+G)+T}px;margin:6px 0">${tiles}</div>`;
+}
+let stateP='30'; // Orders by State ka period: 30 / 180 / 365
+function renderStateOrders(){
+  const P=stateP;
+  let rows=(DATA.stateOrders||[]).map(r=>P==='30'?r:{
+    state:r.state,orders:+r['orders_'+P]||0,units:+r['units_'+P]||0,
+    revenue:+r['revenue_'+P]||0,pct:r['pct_'+P]||0
+  }).filter(r=>+r.orders>0).sort((a,b)=>+b.orders-+a.orders);
+  if(!rows.length) return '';
+  const max=Math.max(...rows.map(r=>+r.orders));
+  const top10=rows.slice(0,10);
+  const pbtn=(v,l)=>`<button onclick="stateP='${v}';renderOverview();" style="background:${stateP===v?'var(--accent)':'var(--panel2)'};color:${stateP===v?'#000':'var(--text)'};border:1px solid var(--border);padding:5px 14px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-size:12.5px;font-weight:600">${l}</button>`;
+  return `<div class="card"><div class="card-head"><h2>📍 Orders by State — ${P==='30'?'Last 30 Din':P==='180'?'Last 6 Mahine':'Last 1 Saal'}</h2>
+  <div style="display:flex;gap:6px;align-items:center">${pbtn('30','30 Din')}${pbtn('180','6 Mahine')}${pbtn('365','1 Saal')}<span class="hint" style="margin-left:8px">box pe hover = detail</span></div></div>
+  <div style="display:flex;gap:32px;padding:16px 20px;flex-wrap:wrap;align-items:flex-start">
+  <div>${renderIndiaMap(rows)}</div>
+  <div style="flex:1;min-width:380px">
+  <div style="display:grid;grid-template-columns:1fr;gap:8px">
+  ${top10.map(r=>`<div title="${inr(+r.revenue)} revenue · ${num(+r.units)} units" style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+    <div style="width:130px;font-size:12px;font-weight:600;color:var(--text)">${r.state}</div>
+    <div style="flex:1;background:var(--panel2);border-radius:4px;overflow:hidden;height:14px">
+      <div style="height:100%;background:var(--accent);opacity:0.8;width:${(+r.orders/max*100).toFixed(0)}%;border-radius:4px"></div>
+    </div>
+    <div style="width:42px;text-align:right;font-size:12px;color:var(--accent);font-weight:600">${r.pct}%</div>
+    <div style="width:50px;text-align:right;font-size:11px;color:var(--text2)">${num(+r.orders)}</div>
+  </div>`).join('')}
+  </div>
+  <div style="padding:10px 0 0">
+    <div style="font-size:11px;color:var(--text2);margin:6px 0">Baaki states:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+    ${rows.slice(10).map(r=>`<span title="${inr(+r.revenue)} revenue · ${num(+r.units)} units" style="background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:11px">${r.state} <b style="color:var(--accent)">${r.pct}%</b> <span style="color:var(--text2)">(${num(+r.orders)})</span></span>`).join('')}
+    </div>
+  </div>
+  </div>
+  </div></div>`;
+}
+let reorderFilter='REORDER NOW',reorderSearch='';
+function renderPullHealth(){
+  const logs=DATA.pullLog||[];
+  if(!logs.length) return '';
+  const hasStale=logs.some(l=>l.status==='stale'||l.status==='never');
+  return `<div class="card"><div class="card-head"><h2>${hasStale?'⚠ ':'✓ '}System Health — Last Pull Status</h2><span class="hint">actual data se calculated · roz subah ~10 baje daily pull ke baad update</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Script</th><th>Status</th><th class="num">Records</th><th class="num">Last Run</th></tr></thead><tbody>
+  ${logs.map(l=>{
+    const sc=l.status==='success'?'p-ok':l.status==='stale'?'p-soon':'p-none';
+    const ago=l.last_run?Math.round((Date.now()-new Date(l.last_run))/86400000):null;
+    const agoStr=ago===null?'Never':ago===0?'Today':ago===1?'Yesterday':`${ago}d ago`;
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:12px">${l.script}</td>
+      <td><span class="pill ${sc}">${l.status}</span></td>
+      <td class="num">${num(+l.records)}</td>
+      <td class="num" style="color:var(--text2)">${agoStr}</td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div></div>`;
+}
+function renderReorder(){
+  // reorder is item-level (no account split) - show note if account filtered
+  const all=DATA.reorder;
+  const c={now:all.filter(x=>x.status==='REORDER NOW').length,soon:all.filter(x=>x.status==='REORDER SOON').length,ok:all.filter(x=>x.status==='OK').length,none:all.filter(x=>x.status==='NO SALES').length};
+  document.getElementById('v-reorder').innerHTML=`
+    ${ACCT?'<div class="card"><div style="padding:14px 20px;color:var(--text2);font-size:13px">Reorder warehouse-level hai (sab accounts ka combined stock), account-wise split nahi hota. Yeh All Accounts ka data hai.</div></div>':''}
+    <div class="kpis"><div class="kpi red"><div class="label">Reorder Now</div><div class="value neg">${c.now}</div></div><div class="kpi amber"><div class="label">Reorder Soon</div><div class="value warn">${c.soon}</div></div><div class="kpi"><div class="label">OK</div><div class="value pos">${c.ok}</div></div><div class="kpi"><div class="label">No Sales 90d</div><div class="value">${c.none}</div></div></div>
+    <div style="padding:8px 20px;font-size:12px;color:var(--text2);background:var(--panel);border-bottom:1px solid var(--border)">
+      📌 Bikri = Amazon + Flipkart/Meesho (Vyapar se) · Maujood maal = Warehouse + FBA me pada + China raste me · Rukh: ▲ tez ▼ dheema ▬ same 🆕 naya (umar ke hisaab se ginti) · Naya item aate hi khud aa jayega, discontinue/packing bahar
+    </div>
+    <div class="card"><div class="controls"><input id="rSearch" placeholder="Search item…" value="${reorderSearch}"><select id="rFilter"><option value="">All</option><option value="REORDER NOW">Reorder Now</option><option value="REORDER SOON">Reorder Soon</option><option value="OK">OK</option><option value="NO SALES">No Sales</option></select><span class="hint" id="rCount"></span></div>
+    <div class="table-scroll"><table><thead id="rHead"><tr></tr></thead><tbody id="rBody"></tbody></table></div></div>`;
+  const s2=document.getElementById('rFilter');s2.value=reorderFilter;
+  document.getElementById('rSearch').oninput=e=>{reorderSearch=e.target.value;drawReorder();};
+  s2.onchange=e=>{reorderFilter=e.target.value;drawReorder();};
+  drawReorder();
+}
+function drawReorder(){
+  let rows=DATA.reorder.filter(x=>(!reorderFilter||x.status===reorderFilter)&&(!reorderSearch||x.item_name.toLowerCase().includes(reorderSearch.toLowerCase())));
+  rows=sorted(rows,'v-reorder','days_of_stock','asc');
+  const pc={'REORDER NOW':'p-now','REORDER SOON':'p-soon','OK':'p-ok','NO SALES':'p-none'};
+  document.getElementById('rCount').textContent=rows.length+' items';
+  const hd=document.getElementById('rHead');
+  if(hd) hd.innerHTML=`<tr>${sth('v-reorder','item_name','Item','days_of_stock')}<th title="▲ tez ho raha · ▼ dheema · ▬ same · 🆕 naya item">Rukh</th>${sth('v-reorder','status','Status','days_of_stock')}${sthN('v-reorder','days_of_stock','Days','days_of_stock')}${sthN('v-reorder','warehouse_stock','Warehouse','days_of_stock')}${sthN('v-reorder','fba_stock','FBA Me','days_of_stock')}${sthN('v-reorder','in_transit','Raste Me','days_of_stock')}${sthN('v-reorder','daily_velocity','Vel/day','days_of_stock')}${sthN('v-reorder','qty_to_order','Order Qty','days_of_stock')}<th>Cost ¥</th></tr>`;
+  document.getElementById('rBody').innerHTML=rows.map(x=>{const inc=Math.max((+x.ordered||0),(+x.in_transit||0));
+    const tcol=x.trend==='▲'?'var(--accent)':(x.trend==='▼'?'var(--red)':'var(--text2)');
+    const amzV=+(x.amazon_velocity||0), totV=+(x.daily_velocity||0);
+    const velCell=`${totV.toFixed(1)}${Math.abs(totV-amzV)>=0.5?`<div style="font-size:10px;color:var(--text2)" title="Amazon pe bikri / baaki Flipkart-Meesho">Amz ${amzV.toFixed(1)}</div>`:''}`;
+    return `<tr><td>${x.item_name}${x.trend==='🆕'?` <span style="font-size:10px;color:var(--accent)" title="${x.age_days} din purana item">${x.age_days}d naya</span>`:''}</td><td style="color:${tcol};font-weight:700">${x.trend||'—'}</td><td><span class="pill ${pc[x.status]}">${x.status}</span></td><td class="num ${x.days_of_stock!=null&&x.days_of_stock<=30?'neg':''}">${x.days_of_stock==null?'—':x.days_of_stock}</td><td class="num ${+x.warehouse_stock<0?'neg-stock':''}">${num(+x.warehouse_stock)}</td><td class="num">${+(x.fba_stock||0)>0?num(+x.fba_stock):'—'}</td><td class="num">${inc>0?'+'+num(inc):'—'}</td><td class="num">${velCell}</td><td class="num"><b>${num(+x.qty_to_order)}</b></td><td class="num">${x.purchase_price?'¥'+num(Math.round(+x.qty_to_order*+x.purchase_price)):'—'}</td></tr>`;}).join('');
+}
+function asinLink(a){return a?`<a class="asin" href="https://www.amazon.in/dp/${a}" target="_blank">${a} ↗</a>`:'—';}
+function renderFba(){
+  const rep=fAcct(DATA.fbaRep).filter(x=>x.needs_replenish);const move=fAcct(DATA.fbmFba).filter(x=>x.move_to_fba);
+  const fv=fAcct(DATA.fbaValue||[]);
+  const fvUnits=fv.reduce((s,x)=>s+ +(x.fba_units||0),0);
+  const fvValue=fv.reduce((s,x)=>s+ +(x.cogs_value||0),0);
+  const fvMissing=fv.filter(x=>x.cogs_missing).length;
+  const fvByAcct={};fv.forEach(x=>{fvByAcct[x.account]=fvByAcct[x.account]||{u:0,v:0};fvByAcct[x.account].u+=+x.fba_units;fvByAcct[x.account].v+=+x.cogs_value;});
+  document.getElementById('v-fba').innerHTML=`
+    <div class="kpis"><div class="kpi blue"><div class="label">📦 FBA Me Pada Maal (COGS)</div><div class="value">${inr(fvValue)}</div><div class="sub">${num(fvUnits)} units · purchase price ke hisaab se${fvMissing?` · ⚠ ${fvMissing} items ka COGS nahi he`:''}</div></div><div class="kpi red"><div class="label">FBA Replenish (&lt;30 days)</div><div class="value neg">${rep.length}</div><div class="sub">${rep.filter(x=>x.status==='OUT OF STOCK').length} out of stock · baaki khatam hone wala</div></div><div class="kpi amber"><div class="label">FBM → FBA Move</div><div class="value warn">${move.length}</div><div class="sub">accha perform · FBA bhejo</div></div></div>
+    <div class="card"><div class="card-head"><h2>FBA Stock Value — Account Wise</h2><span class="hint">aaj ke FBA snapshot × Vyapar purchase price (combo = dono parts ka jod)</span></div>
+    <div class="table-scroll"><table><thead><tr><th>Account</th><th class="num">Units</th><th class="num">COGS Value</th></tr></thead><tbody>
+    ${Object.entries(fvByAcct).sort((a,b)=>b[1].v-a[1].v).map(([a,x])=>`<tr><td><b>${a}</b></td><td class="num">${num(x.u)}</td><td class="num"><b>${inr(x.v)}</b></td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--text2);padding:20px">data nahi</td></tr>'}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-head"><h2>FBA Stock Value — Product Wise</h2><span class="hint">sabse zyada paisa fasa hua upar · column click = sort</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-fbav','product','Product','cogs_value')}
+      ${sth('v-fbav','account','Account','cogs_value')}
+      ${sthN('v-fbav','fba_units','Units','cogs_value')}
+      ${sthN('v-fbav','cogs_value','COGS Value','cogs_value')}
+    </tr></thead><tbody>
+    ${sorted(fv,'v-fbav','cogs_value','desc').slice(0,100).map(x=>`<tr><td>${x.product}${x.cogs_missing?' <span style="color:var(--amber)" title="COGS set nahi he">⚠</span>':''}</td><td>${x.account}</td><td class="num">${num(+x.fba_units)}</td><td class="num"><b>${inr(+x.cogs_value)}</b></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-head"><h2>FBA Replenish — Amazon warehouse bhejo</h2><span class="hint">stock + inbound &lt;30 days · OUT OF STOCK sabse upar · column click = sort</span></div>
+    <div class="table-scroll"><table><thead><tr>${sthN('v-fba','fba_days_cover','Days Left','fba_days_cover')}${sth('v-fba','account','Account','fba_days_cover')}${sth('v-fba','vyapar_item','Item','fba_days_cover')}${sthN('v-fba','fba_qty','FBA Stock','fba_days_cover')}${sthN('v-fba','inbound_qty','Inbound','fba_days_cover')}${sthN('v-fba','daily_velocity','Vel/day','fba_days_cover')}${sthN('v-fba','warehouse_stock','WH Stock','fba_days_cover')}${sthN('v-fba','send_qty','Send Qty','fba_days_cover')}<th>Status</th><th>ASIN</th></tr></thead><tbody>
+    ${sorted(rep,'v-fba','fba_days_cover','asc').length?sorted(rep,'v-fba','fba_days_cover','asc').map(x=>`<tr style="${x.status==='OUT OF STOCK'?'background:rgba(255,80,80,0.09)':''}"><td class="num neg">${x.fba_days_cover==null?'0':x.fba_days_cover}</td><td>${x.account}</td><td>${x.vyapar_item||'—'}</td><td class="num ${+x.fba_qty<=0?'neg-stock':''}">${num(+x.fba_qty)}</td><td class="num">${+x.inbound_qty>0?'+'+num(+x.inbound_qty):'—'}</td><td class="num">${(+x.daily_velocity).toFixed(1)}</td><td class="num ${+x.warehouse_stock<=0?'neg':''}">${num(+(x.warehouse_stock||0))}</td><td class="num"><b>${num(+x.send_qty)}</b></td><td><span class="pill ${x.status==='SEND NOW'||x.status==='OUT OF STOCK'?'p-now':x.status==='SEND SOON'?'p-soon':'p-ok'}">${x.status||''}</span></td><td>${asinLink(x.asin)}</td></tr>`).join(''):'<tr><td colspan="10" style="text-align:center;color:var(--text2);padding:30px">Sab FBA stock 30 days se upar</td></tr>'}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-head"><h2>FBM → FBA Candidates</h2><span class="hint">vel ≥ 0.5/day · margin ≥ 40% · price ≥ ₹300</span></div>
+    <div class="table-scroll"><table><thead><tr><th>ASIN</th><th>Account</th><th>Item</th><th class="num">Vel/day</th><th class="num">30d Units</th><th class="num">Price</th><th class="num">Margin</th></tr></thead><tbody>
+    ${move.length?move.map(x=>`<tr><td>${asinLink(x.asin)}</td><td>${x.account}</td><td>${x.vyapar_item}</td><td class="num pos">${(+x.daily_velocity).toFixed(1)}</td><td class="num">${num(+x.units_30d)}</td><td class="num">${inr(+x.avg_price)}</td><td class="num">${x.gross_margin_pct}%</td></tr>`).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:30px">Koi FBM item criteria match nahi kar raha</td></tr>'}
+    </tbody></table></div></div>`;
+}
+let PNL_MONTH=''; // '' = current month
+async function changePnlMonth(m){
+  PNL_MONTH=m;
+  if(m){DATA.pnlSel=await q('pnl_monthly?month=eq.'+m+'&order=gross_margin_pct.asc');}
+  renderPnl();
+}
+function pnlMonthOptions(){
+  const opts=[];const now=new Date();
+  for(let i=0;i<14;i++){
+    const dt=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const val=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-01';
+    const lbl=dt.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+    opts.push(`<option value="${i===0?'':val}" ${((i===0&&!PNL_MONTH)||PNL_MONTH===val)?'selected':''}>${lbl}${i===0?' (current)':''}</option>`);
+  }
+  return opts.join('');
+}
+function renderPnl(){
+  const p=fAcct(PNL_MONTH&&DATA.pnlSel?DATA.pnlSel:DATA.pnl);
+  const t=p.reduce((a,x)=>({rev:a.rev+ +(x.revenue_incl_gst??x.revenue),gst:a.gst+ +x.gst,cogs:a.cogs+ +x.cogs,gp:a.gp+ +x.gross_profit,fee:a.fee+ +x.amazon_fees,ad:a.ad+ +x.ad_spend,oth:a.oth+ +(x.other_fees||0),net:a.net+ +x.net_before_opex,u:a.u+ +x.units,ret:a.ret+ +(x.returns_deducted||0)}),{rev:0,gst:0,cogs:0,gp:0,fee:0,ad:0,oth:0,net:0,u:0,ret:0});
+  const selMonth=PNL_MONTH?new Date(PNL_MONTH).toLocaleDateString('en-IN',{month:'long',year:'numeric'}):new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  document.getElementById('v-pnl').innerHTML=`
+    <div class="card"><div class="card-head"><h2>Profit &amp; Loss — ${selMonth}</h2>
+    <div style="display:flex;gap:10px;align-items:center">
+      <select onchange="changePnlMonth(this.value)" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:7px;font-family:var(--sans);font-size:12.5px">${pnlMonthOptions()}</select>
+      <span class="hint">returns deducted · Revenue GST-samet, GST alag column · fees = estimated</span>
+    </div></div>
+    <div class="table-scroll"><table><thead><tr><th>Account</th><th class="num">Units</th><th class="num neg">Returns</th><th class="num">Revenue (GST samet)</th><th class="num">GST</th><th class="num">COGS</th><th class="num">Gross</th><th class="num">Margin</th><th class="num">Fees</th><th class="num">Storage/Other</th><th class="num">Net</th></tr></thead><tbody>
+    ${p.map(x=>`<tr><td><b>${x.account}</b></td><td class="num">${num(+x.units)}</td><td class="num ${+x.returns_deducted>0?'neg':''}">${+x.returns_deducted>0?'-'+num(+x.returns_deducted):'—'}</td><td class="num">${inr(+(x.revenue_incl_gst??x.revenue))}</td><td class="num neg">${inr(+x.gst)}</td><td class="num neg">${inr(+x.cogs)}</td><td class="num pos">${inr(+x.gross_profit)}</td><td class="num ${x.gross_margin_pct<55?'neg':x.gross_margin_pct<60?'warn':'pos'}">${x.gross_margin_pct}%</td><td class="num neg">${inr(+x.amazon_fees)}</td><td class="num neg">${+(x.other_fees||0)>0?inr(+x.other_fees):'—'}</td><td class="num"><b>${inr(+x.net_before_opex)}</b></td></tr>`).join('')}
+    <tr style="border-top:2px solid var(--border);font-weight:600"><td><b>TOTAL</b></td><td class="num">${num(t.u)}</td><td class="num neg">${t.ret>0?'-'+num(t.ret):'—'}</td><td class="num">${inr(t.rev)}</td><td class="num neg">${inr(t.gst)}</td><td class="num neg">${inr(t.cogs)}</td><td class="num pos">${inr(t.gp)}</td><td class="num">${(t.rev-t.gst)?(t.gp/(t.rev-t.gst)*100).toFixed(0):0}%</td><td class="num neg">${inr(t.fee)}</td><td class="num neg">${inr(t.oth)}</td><td class="num"><b>${inr(t.net)}</b></td></tr>
+    </tbody></table></div></div>
+    <div class="kpis">
+      <div class="kpi pos"><div class="label">GST Collected</div><div class="value pos">${inr(t.gst)}</div><div class="sub">govt liability</div></div>
+      <div class="kpi ${t.ret>0?'amber':''}"><div class="label">Returns Deducted</div><div class="value ${t.ret>0?'warn':''}">${num(t.ret)} units</div><div class="sub">customer returns + RTO dono minus</div></div>
+    </div>`;
+}
+function renderDisputes(){
+  const skus=fAcct(DATA.disputes);
+  const orders=fAcct(DATA.disputeOrders);
+  const totalRecover=skus.reduce((s,x)=>s+ +x.total_overcharge,0);
+  const totalOrders=orders.length;
+  document.getElementById('v-disputes').innerHTML=`
+    <div class="kpis">
+      <div class="kpi red"><div class="label">Recoverable Amount</div><div class="value neg">${inr(totalRecover)}</div><div class="sub">last 60 days</div></div>
+      <div class="kpi amber"><div class="label">Disputable SKUs</div><div class="value warn">${skus.length}</div></div>
+      <div class="kpi"><div class="label">Overcharged Orders</div><div class="value">${totalOrders}</div></div>
+    </div>
+    <div class="card"><div class="card-head"><h2>Disputable SKUs — Amazon zyada fee kaat raha</h2><span class="hint">expected fee (Amazon preview) vs actual (settlement) · 2% buffer · Amazon 30-day window mein claim karo</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      <th>ASIN</th>${sth('v-disputes','account','Account','total_overcharge')}
+      ${sth('v-disputes','item_name','Item','total_overcharge')}
+      ${sth('v-disputes','expected_fee_pct','Expected %','total_overcharge')}
+      ${sth('v-disputes','avg_actual_pct','Actual %','total_overcharge')}
+      ${sth('v-disputes','avg_extra_pct','Extra %','total_overcharge')}
+      ${sthN('v-disputes','overcharged_orders','Orders','total_overcharge')}
+      ${sthN('v-disputes','total_overcharge','Recoverable','total_overcharge')}
+    </tr></thead><tbody>
+    ${sorted(skus,'v-disputes','total_overcharge','desc').length?sorted(skus,'v-disputes','total_overcharge','desc').map(x=>`<tr><td>${asinLink(x.asin)}</td><td>${x.account}</td><td>${x.item_name?x.item_name.substring(0,50):x.amazon_sku}</td><td class="num">${x.expected_fee_pct}%</td><td class="num neg">${x.avg_actual_pct}%</td><td class="num neg">+${x.avg_extra_pct}%</td><td class="num">${x.overcharged_orders}</td><td class="num neg"><b>${inr(+x.total_overcharge)}</b></td></tr>`).join(''):'<tr><td colspan="8" style="text-align:center;color:var(--text2);padding:30px">Koi dispute nahi mila</td></tr>'}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-head"><h2>Order Details — claim ke liye proof</h2><span class="hint">top overcharged orders</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-disputes_ord','order_id','Order ID','overcharge')}
+      ${sth('v-disputes_ord','account','Account','overcharge')}
+      ${sth('v-disputes_ord','amazon_sku','SKU','overcharge')}
+      ${sth('v-disputes_ord','settlement_date','Date','overcharge')}
+      ${sthN('v-disputes_ord','sale_amount','Sale','overcharge')}
+      ${sthN('v-disputes_ord','expected_commission','Expected Fee','overcharge')}
+      ${sthN('v-disputes_ord','actual_commission','Actual Fee','overcharge')}
+      ${sthN('v-disputes_ord','overcharge','Overcharge','overcharge')}
+    </tr></thead><tbody>
+    ${sorted(orders,'v-disputes_ord','overcharge','desc').slice(0,200).map(o=>`<tr><td style="font-family:var(--mono);font-size:12px">${o.order_id}</td><td>${o.account}</td><td style="font-size:12px">${o.amazon_sku}</td><td>${o.settlement_date}</td><td class="num">${inr(+o.sale_amount)}</td><td class="num">${inr(+o.expected_commission)}</td><td class="num neg">${inr(+o.actual_commission)}</td><td class="num neg"><b>${inr(+o.overcharge)}</b></td></tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+let pnlSearchTerm='', pnlSortLoss=true;
+let pnlConsolidated=true; // default: har product ki EK row (sab accounts ka total)
+function renderProductPnl(){
+  let rows = pnlConsolidated ? (DATA.productPnlCons||[]) : fAcct(DATA.productPnl);
+  if(pnlSearchTerm) rows=rows.filter(r=>r.vyapar_item.toLowerCase().includes(pnlSearchTerm.toLowerCase()));
+  rows=[...rows].sort((a,b)=>pnlSortLoss?(+a.net_profit-+b.net_profit):(+b.net_profit-+a.net_profit));
+  const loss=rows.filter(r=>+r.net_profit<0);
+  const totRev=rows.reduce((s,x)=>s+ +x.revenue,0);
+  const totNet=rows.reduce((s,x)=>s+ +x.net_profit,0);
+  document.getElementById('v-product_pnl').innerHTML=`
+    <div class="kpis">
+      <div class="kpi"><div class="label">Products (30d)</div><div class="value">${rows.length}</div></div>
+      <div class="kpi"><div class="label">Revenue</div><div class="value">${inr(totRev)}</div></div>
+      <div class="kpi pos"><div class="label">Net Profit</div><div class="value pos">${inr(totNet)}</div><div class="sub">revenue − COGS − Amazon fees (est.)</div></div>
+      <div class="kpi ${loss.length>0?'red':''}"><div class="label">Loss-making</div><div class="value ${loss.length>0?'neg':''}">${loss.length}</div></div>
+    </div>
+    <div style="padding:8px 20px;font-size:12px;color:var(--text2);background:var(--panel);border-bottom:1px solid var(--border)">
+      ℹ Net Profit = Revenue (GST hata ke, <b>customer returns minus karke</b>) − COGS − Fees − Ads − Promo − Storage share + Reimbursement. Fees/Promo last 60 din ke ASLI settlement rates se · <b>Ads = asli 30-din kharcha</b> revenue-share me (jod exact milta he) · <b>Storage/Other sirf FBA products pe</b> · <b>~</b> = SKU rate nahi mila, account average · RTO minus nahi hota (maal wapas aata he).
+    </div>
+    <div class="card"><div class="card-head"><h2>Per-Product P&amp;L — 30 days</h2>
+    <span class="hint">${pnlConsolidated?'All accounts combined':'Account-wise'}</span></div>
+    <div class="controls">
+      <input id="pnlSearch" placeholder="Search product…" value="${pnlSearchTerm}">
+      <button onclick="pnlConsolidated=!pnlConsolidated;renderProductPnl();" style="background:${pnlConsolidated?'var(--accent)':'var(--panel2)'};color:${pnlConsolidated?'#000':'var(--text)'};border:1px solid var(--border);padding:7px 14px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-size:13px">
+        ${pnlConsolidated?'✓ Product-wise (combined)':'Account-wise (split)'}
+      </button>
+      <button onclick="pnlSortLoss=!pnlSortLoss;renderProductPnl();" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-size:13px">${pnlSortLoss?'Loss First':'Profit First'}</button>
+      <span class="hint">${rows.length} items</span>
+    </div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-product_pnl','vyapar_item','Product','net_profit')}
+      ${pnlConsolidated?sth('v-product_pnl','accounts','Accounts','net_profit'):''}
+      ${!pnlConsolidated?sth('v-product_pnl','account','Account','net_profit'):''}
+      ${sthN('v-product_pnl','units','Units','net_profit')}
+      ${sthN('v-product_pnl','returns_units','Returns','net_profit')}
+      ${sthN('v-product_pnl','revenue','Revenue','net_profit')}
+      ${sthN('v-product_pnl','cogs','COGS','net_profit')}
+      ${sthN('v-product_pnl','gross_margin_pct','Gross %','net_profit')}
+      ${sthN('v-product_pnl','amazon_fees','Fees','net_profit')}
+      ${sthN('v-product_pnl','ad_cost','Ads','net_profit')}
+      ${sthN('v-product_pnl','promo_cost','Promo','net_profit')}
+      ${sthN('v-product_pnl','other_alloc','Storage/Other','net_profit')}
+      ${sthN('v-product_pnl','reimbursement','Reimb','net_profit')}
+      ${sthN('v-product_pnl','net_profit','Net Profit','net_profit')}
+      ${sthN('v-product_pnl','net_margin_pct','Net %','net_profit')}
+    </tr></thead><tbody>
+    ${sorted(rows,'v-product_pnl').slice(0,300).map(r=>{
+      const m=+r.net_margin_pct;const mc=m<0?'neg':m<10?'warn':m>=25?'pos':'';
+      const feeIcon=r.fee_source==='actual'?'':' <span title="estimated fee" style="color:var(--text2);font-size:10px">~</span>';
+      return `<tr>
+        <td><b>${r.vyapar_item}</b></td>
+        ${pnlConsolidated?`<td style="font-size:10.5px;color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.account_names||''}">${r.account_names||r.accounts}</td>`:`<td>${r.account}</td>`}
+        <td class="num">${num(+r.units)}</td>
+        <td class="num ${+(r.returns_units||0)>0?'neg':''}">${+(r.returns_units||0)>0?'-'+num(+r.returns_units):'—'}</td>
+        <td class="num">${inr(+r.revenue)}</td>
+        <td class="num neg">${+r.cogs===0?'<b style="color:var(--red)">₹0 ⚠</b>':inr(+r.cogs)}</td>
+        <td class="num ${+r.gross_margin_pct<50?'warn':''}">${r.gross_margin_pct}%</td>
+        <td class="num neg">${inr(+r.amazon_fees)}${feeIcon}</td>
+        <td class="num neg">${inr(+(r.ad_cost||0))}</td>
+        <td class="num neg">${+(r.promo_cost||0)>0?inr(+r.promo_cost):'—'}</td>
+        <td class="num neg">${+(r.other_alloc||0)>0?inr(+r.other_alloc):'—'}</td>
+        <td class="num ${+(r.reimbursement||0)>0?'pos':''}">${+(r.reimbursement||0)>0?'+'+inr(+r.reimbursement):'—'}</td>
+        <td class="num ${+r.net_profit<0?'neg':'pos'}"><b>${inr(+r.net_profit)}</b></td>
+        <td class="num ${mc}">${m}%</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div></div>`;
+  document.getElementById('pnlSearch').oninput=e=>{pnlSearchTerm=e.target.value;renderProductPnl();};
+}
+function renderSlow(){
+  const rows=DATA.slow;
+  const byStatus={DEAD:rows.filter(r=>r.status==='DEAD'),OVERSTOCK:rows.filter(r=>r.status==='OVERSTOCK'),SLOW:rows.filter(r=>r.status==='SLOW'),DISCONTINUED:rows.filter(r=>r.status==='DISCONTINUED'),'JUST STARTED':rows.filter(r=>r.status==='JUST STARTED')};
+  const lock=k=>(byStatus[k]||[]).reduce((s,x)=>s+ +x.stock_value,0);
+  const total=rows.reduce((s,x)=>s+ +x.stock_value,0);
+  document.getElementById('v-slow').innerHTML=`
+    ${ACCT?'<div class="card"><div style="padding:14px 20px;color:var(--text2);font-size:13px">Slow moving warehouse-level hai. All accounts combined.</div></div>':''}
+    <div class="kpis">
+      <div class="kpi red"><div class="label">DEAD (&lt;5 sales 90d)</div><div class="value neg">${byStatus.DEAD.length}</div><div class="sub">${inr(lock('DEAD'))} locked</div></div>
+      <div class="kpi red"><div class="label">OVERSTOCK (240d+)</div><div class="value neg">${byStatus.OVERSTOCK.length}</div><div class="sub">${inr(lock('OVERSTOCK'))} locked</div></div>
+      <div class="kpi amber"><div class="label">SLOW (120-240d)</div><div class="value warn">${byStatus.SLOW.length}</div><div class="sub">${inr(lock('SLOW'))} locked</div></div>
+      <div class="kpi red"><div class="label">DISCONTINUED me phasa</div><div class="value neg">${inr(lock('DISCONTINUED'))}</div><div class="sub">${byStatus.DISCONTINUED.length} band kiye items · clearance/removal socho</div></div>
+      <div class="kpi pos"><div class="label">JUST STARTED 🆕</div><div class="value pos">${byStatus['JUST STARTED'].length}</div><div class="sub">recently selling ho gaya</div></div>
+      <div class="kpi blue"><div class="label">Total Locked</div><div class="value">${inr(total)}</div></div>
+    </div>
+    ${byStatus['JUST STARTED'].length?`<div class="card" style="border:1px solid var(--pos)"><div class="card-head"><h2>🆕 JUST STARTED — Ab Sell Ho Raha Hai</h2><span class="hint">90d me lagbhag sales nahi thi, last 14d me bikna shuru hua — DEAD mat samjho</span></div>
+    <div class="table-scroll"><table><thead><tr><th>Item</th><th class="num">Stock</th><th class="num">Stock Value</th><th class="num">Last 14d Sales</th></tr></thead><tbody>
+    ${byStatus['JUST STARTED'].map(r=>`<tr><td><b>${r.item_name}</b></td><td class="num">${num(+r.stock)}</td><td class="num">${inr(+r.stock_value)}</td><td class="num pos">Selling!</td></tr>`).join('')}
+    </tbody></table></div></div>`:''}
+    <div class="card"><div class="card-head"><h2>Capital Locked in Stock</h2><span class="hint">DEAD = &lt;5 sales 90d · OVERSTOCK = 240d+ cover · SLOW = 120d+ · DISCONTINUED = band kiya lekin stock pada he</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-slow','item_name','Item','stock_value')}
+      ${sth('v-slow','status','Status','stock_value')}
+      ${sthN('v-slow','stock','Stock','stock_value')}
+      ${sthN('v-slow','purchase_price','Purchase Price','stock_value')}
+      ${sthN('v-slow','stock_value','Stock Value','stock_value')}
+      ${sthN('v-slow','units_90d','90d Units','stock_value')}
+      ${sthN('v-slow','daily_velocity','Vel/day','stock_value')}
+      ${sthN('v-slow','days_of_cover','Days Cover','stock_value')}
+    </tr></thead><tbody>
+    ${sorted(rows.filter(r=>r.status!=='JUST STARTED'),'v-slow','stock_value','desc').map(r=>{
+      const sc=r.status==='DEAD'||r.status==='OVERSTOCK'?'p-now':r.status==='DISCONTINUED'?'p-none':'p-soon';
+      return `<tr><td><b>${r.item_name}</b></td><td><span class="pill ${sc}">${r.status}</span></td><td class="num">${num(+r.stock)}</td><td class="num">₹${num(+(r.purchase_price||0))}</td><td class="num neg"><b>${inr(+r.stock_value)}</b></td><td class="num">${num(+r.units_90d)}</td><td class="num">${r.daily_velocity}</td><td class="num">${r.days_of_cover==null?'∞':r.days_of_cover}</td></tr>`;
+    }).join('')}
+    </tbody></table></div></div>`;
+}
+function renderTraffic(){
+  const cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+  const traf30=fAcct(DATA.trafDate).filter(r=>r.report_date>=cutoff);
+  const byAcc={};
+  traf30.forEach(r=>{if(!byAcc[r.account])byAcc[r.account]={acc:r.account,sales:0,units:0,sessions:0,bb:[],ref:[]};const a=byAcc[r.account];a.sales+= +r.ordered_sales;a.units+= +r.units_ordered;a.sessions+= +r.sessions;if(+r.buy_box_pct>0)a.bb.push(+r.buy_box_pct);if(+r.refund_rate>0)a.ref.push(+r.refund_rate);});
+  const growthMap={};DATA.growth.forEach(g=>growthMap[g.account]=g);
+  const rows=Object.values(byAcc).map(a=>({...a,conv:a.sessions?(a.units/a.sessions*100):0,avgBB:a.bb.length?a.bb.reduce((x,y)=>x+y,0)/a.bb.length:0,avgRef:a.ref.length?a.ref.reduce((x,y)=>x+y,0)/a.ref.length:0})).sort((x,y)=>y.sales-x.sales);
+  const tot=rows.reduce((a,x)=>({sales:a.sales+x.sales,units:a.units+x.units,sessions:a.sessions+x.sessions}),{sales:0,units:0,sessions:0});
+  let leaks=(DATA.bbLeaks||[]).filter(x=>+x.avg_buy_box_pct>0);
+  if(ACCT)leaks=leaks.filter(x=>x.account===ACCT);
+  const lostTotal=leaks.reduce((s,x)=>s+ +(x.lost_sales_est||0),0);
+  // Competitive pricing ka data yahan bhi jodo - BB kyu ja raha he wo price se dikhta he
+  const CP={};(DATA.compPricing||[]).forEach(c=>{if(c.asin)CP[c.asin+'|'+c.account]=c;});
+  leaks=sorted(leaks,'v-bbleak');
+  document.getElementById('v-traffic').innerHTML=`
+    <div class="card"><div class="card-head"><h2>Sales &amp; Traffic — 30 days</h2><span class="hint">growth = 30d vs previous 30d</span></div>
+    <div class="table-scroll"><table><thead><tr><th>Account</th><th class="num">Sales</th><th class="num">Growth</th><th class="num">Units</th><th class="num">Sessions</th><th class="num">Buy Box</th><th class="num">Conv</th><th class="num">Refund</th></tr></thead><tbody>
+    ${rows.map(a=>{const g=growthMap[a.acc];return `<tr><td><b>${a.acc}</b></td><td class="num">${inr(a.sales)}</td><td class="num">${g?gpct(+g.rev_growth_pct):'—'}</td><td class="num">${num(a.units)}</td><td class="num">${num(a.sessions)}</td><td class="num ${a.avgBB<75?'neg':a.avgBB<85?'warn':''}">${a.avgBB.toFixed(0)}%</td><td class="num ${a.conv<1.5?'neg':a.conv>=3?'pos':''}">${a.conv.toFixed(2)}%</td><td class="num ${a.avgRef>15?'neg':a.avgRef>12?'warn':''}">${a.avgRef.toFixed(1)}%</td></tr>`;}).join('')}
+    <tr style="border-top:2px solid var(--border);font-weight:600"><td><b>TOTAL</b></td><td class="num">${inr(tot.sales)}</td><td class="num"></td><td class="num">${num(tot.units)}</td><td class="num">${num(tot.sessions)}</td><td class="num"></td><td class="num">${tot.sessions?(tot.units/tot.sessions*100).toFixed(2):0}%</td><td class="num"></td></tr>
+    </tbody></table></div></div>
+    <div class="card"><div class="card-head"><h2>Buy Box Leaks — 14 days</h2><span class="hint">${leaks.length} ASINs · est. lost sales: <b style="color:var(--red)">${inr(lostTotal)}</b> · weighted avg (sab din) · column click = sort</span></div>
+    <div class="table-scroll"><table><thead><tr><th>ASIN</th>${sth('v-bbleak','product_name','Product','')}${sth('v-bbleak','account','Account','')}${sth('v-bbleak','vyapar_item','Item','')}${sthN('v-bbleak','sessions','Sessions','')}${sthN('v-bbleak','units','Units','')}${sthN('v-bbleak','sales','Sales 14d','')}${sthN('v-bbleak','avg_buy_box_pct','Buy Box','')}${sthN('v-bbleak','lost_sales_est','Lost (est)','')}<th class="num">My vs Comp ₹</th><th class="num">Latest</th></tr></thead><tbody>
+    ${leaks.map(x=>{
+      const myP=+(x.my_price||0), cpP=+(x.competitor_price||0);
+      // My price aksar pata hoti he Comp na mile tab bhi (Amazon Pricing API
+      // sab sellers ka price nahi deti) — isliye jo bhi pata ho wo dikhao,
+      // dono ko "—" me mat chhupao.
+      const cp = (myP>0 && cpP>0) ? `${num(myP)} vs <span class="${cpP<myP?'neg':'pos'}">${num(cpP)}</span>`
+               : (myP>0) ? `${num(myP)} vs —`
+               : (cpP>0) ? `— vs ${num(cpP)}`
+               : '—';
+      return `<tr><td>${asinLink(x.child_asin)}</td><td style="font-size:11px">${(x.product_name||'—').substring(0,45)}</td><td>${x.account}</td><td>${x.vyapar_item||'—'}</td><td class="num">${num(+x.sessions)}</td><td class="num ${+x.units===0?'neg':''}">${num(+x.units)}</td><td class="num">${inr(+(x.sales||0))}</td><td class="num ${+x.avg_buy_box_pct<50?'neg':'warn'}"><b>${(+x.avg_buy_box_pct).toFixed(0)}%</b></td><td class="num neg"><b>${x.lost_sales_est!=null?inr(+x.lost_sales_est):'—'}</b></td><td class="num" style="font-size:11px">${cp}</td><td class="num" style="font-size:11px;color:var(--text2)">${(x.latest_date||'').slice(5)}</td></tr>`;
+    }).join('')}
+    </tbody></table></div></div>`;
+}
+function renderFbaInbound(){
+  const alerts=fAcct(DATA.fbaAlerts||[]);
+  const overdue=fAcct(DATA.fbaOverdue||[]);
+  const totalLost=alerts.reduce((s,x)=>s+ +x.potentially_lost,0);
+  const critical=overdue.filter(x=>x.alert_level==='CRITICAL');
+  const warning=overdue.filter(x=>x.alert_level==='WARNING');
+
+  document.getElementById('v-fba_inbound').innerHTML=`
+    <div class="kpis">
+      <div class="kpi ${overdue.length>0?'red':''}"><div class="label">Overdue (15+ days)</div><div class="value ${overdue.length>0?'neg':''}">${overdue.length}</div><div class="sub">${critical.length} critical · ${warning.length} warning</div></div>
+      <div class="kpi ${alerts.length>0?'red':''}"><div class="label">Potential Lost (21d+)</div><div class="value ${alerts.length>0?'neg':''}">${totalLost}</div><div class="sub">${alerts.length} SKUs snapshot-based</div></div>
+      <div class="kpi amber" id="si_kpi_transit"><div class="label">IN_TRANSIT</div><div class="value warn">…</div></div>
+      <div class="kpi blue" id="si_kpi_receiving"><div class="label">RECEIVING</div><div class="value">…</div><div class="sub">Amazon FC pe process ho raha</div></div>
+    </div>
+
+    ${overdue.length>0?`
+    <div class="card" style="border:2px solid var(--neg)">
+      <div class="card-head"><h2>⚠ Overdue — 15+ din se IN_TRANSIT, received nahi</h2><span class="hint">Amazon se poochho ya Seller Central pe case file karo</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Account</th><th>SKU</th><th>Item</th><th>Level</th><th class="num">Qty Sent</th><th class="num neg">Days Ago</th><th class="num">Current FBA Stock</th></tr></thead><tbody>
+      ${overdue.map(x=>`<tr style="${x.alert_level==='CRITICAL'?'background:rgba(255,80,80,0.09)':x.alert_level==='WARNING'?'background:rgba(255,180,0,0.07)':''}">
+        <td><b>${x.account}</b></td>
+        <td style="font-size:12px;font-family:var(--mono)">${x.amazon_sku}</td>
+        <td>${x.vyapar_item||'—'}</td>
+        <td><span class="pill ${x.alert_level==='CRITICAL'?'p-now':x.alert_level==='WARNING'?'p-soon':'p-none'}">${x.alert_level}</span></td>
+        <td class="num neg"><b>${num(+x.qty_shipped)}</b></td>
+        <td class="num neg"><b>${x.days_since_shipped}</b></td>
+        <td class="num">${num(+x.current_fba_stock)}</td>
+      </tr>`).join('')}
+      </tbody></table></div>
+      <div style="padding:10px 20px;font-size:12px;color:var(--text2)">
+        🔴 CRITICAL (45+ days) → Seller Central pe case file karo immediately &nbsp;|&nbsp;
+        🟡 WARNING (30+ days) → Amazon se status check karo &nbsp;|&nbsp;
+        ⚪ OVERDUE (15-29 days) → monitor karo, 30 din tak na mile tab action lo
+      </div>
+    </div>`
+    :'<div class="card"><div style="padding:14px 20px;color:var(--pos);font-size:13px">✓ Koi overdue shipment nahi — sab 15 din ke andar receive ho raha hai</div></div>'}
+
+    ${alerts.length>0?`
+    <div class="card" style="border:1px solid var(--amber)"><div class="card-head"><h2>🔍 Bheja Tha, Par Hisaab Nahi Mil Raha</h2><span class="hint">21 din pehle raste me tha → na stock me aaya, na bika = Amazon FC pe atka/kho gaya ho sakta he</span></div>
+    <div class="table-scroll"><table><thead><tr><th>Item</th><th>Account</th><th class="num">Raste Me Tha</th><th class="num">Ab Raste Me</th><th class="num">Stock Badla</th><th class="num">Bika</th><th class="num neg">Hisaab Nahi Mila</th><th>Period</th></tr></thead><tbody>
+    ${alerts.map(a=>`<tr><td><b>${a.vyapar_item||a.amazon_sku}</b></td><td>${a.account}</td>
+      <td class="num">${num(+a.inbound_was)}</td><td class="num">${num(+a.inbound_now)}</td>
+      <td class="num ${+a.stock_increased>0?'pos':''}">${+a.stock_increased>0?'+':''}${num(+a.stock_increased)}</td>
+      <td class="num">${num(+(a.units_sold||0))}</td>
+      <td class="num neg"><b>${num(+a.potentially_lost)}</b></td>
+      <td style="font-size:12px">${a.prev_date} → ${a.check_date}</td></tr>`).join('')}
+    </tbody></table></div></div>`
+    :'<div class="card"><div style="padding:14px 20px;color:var(--pos);font-size:13px">✓ Bheja hua sab maal ka hisaab mil raha he — stock me aaya ya bik gaya, kuch missing nahi</div></div>'}
+
+    <div id="si_shipments_card"></div>
+    <div id="si_removals_card"></div>`;
+
+  // Shipment summary from pre-loaded DATA
+  const ships = fAcct(DATA.fbaShipments||[]);
+  const active = ships.filter(r=>r.shipment_status==='ACTIVE'||r.shipment_status==='WORKING');
+  const transit = ships.filter(r=>r.shipment_status==='IN_TRANSIT');
+  const receiving = ships.filter(r=>r.shipment_status==='RECEIVING');
+  const kpi_t=document.getElementById('si_kpi_transit');
+  const kpi_r=document.getElementById('si_kpi_receiving');
+  // Amazon ke inventory API ka inbound = sabse bharosemand "raste me" number
+  const amzInb=fAcct(DATA.amzInbound||[]).reduce((s,x)=>s+ +(x.inbound_units||0),0);
+  if(kpi_t) kpi_t.innerHTML=`<div class="label">Raste Me (Amazon ke hisaab se)</div><div class="value warn">${num(amzInb)}</div><div class="sub">${transit.length} shipments IN_TRANSIT</div>`;
+  if(kpi_r) kpi_r.innerHTML=`<div class="label">RECEIVING (FC pe)</div><div class="value pos">${num(receiving.reduce((s,x)=>s+ +(x.total_qty||0),0))}</div><div class="sub">${receiving.length} shipments process ho rahi hain</div>`;
+
+  const sc=s=>s==='IN_TRANSIT'?'p-now':s==='RECEIVING'?'p-soon':s==='ACTIVE'||s==='WORKING'?'p-none':'p-ok';
+  const ac=a=>a&&a.includes('CRITICAL')?'p-now':a&&a.includes('WARNING')?'p-soon':a&&a.includes('OVERDUE')?'p-none':'';
+
+  document.getElementById('si_shipments_card').innerHTML = ships.length ? `
+    <div class="card"><div class="card-head"><h2>All FBA Inbound Shipments</h2>
+    <span class="hint">band/received shipments khud hat jaate hain · Plan Age = plan banne se ab tak · column click=sort</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-fba_sh','shipment_id','Shipment ID','days_since_shipped')}
+      ${sth('v-fba_sh','account','Account','days_since_shipped')}
+      ${sth('v-fba_sh','shipment_name','Name','days_since_shipped')}
+      ${sth('v-fba_sh','shipment_status','Status','days_since_shipped')}
+      ${sthN('v-fba_sh','total_skus','SKUs','days_since_shipped')}
+      ${sthN('v-fba_sh','total_qty','Qty','days_since_shipped')}
+      ${sthN('v-fba_sh','days_since_shipped','Plan Age','days_since_shipped')}
+    </tr></thead><tbody>
+    ${sorted(ships,'v-fba_sh','days_since_shipped','desc').map(r=>`<tr style="${+r.days_since_shipped>=15&&r.shipment_status==='IN_TRANSIT'?'background:rgba(255,80,80,0.09)':''}">
+      <td style="font-family:var(--mono);font-size:11px">${r.shipment_id}</td>
+      <td><b>${r.account}</b></td>
+      <td style="font-size:12px">${(r.shipment_name||'').substring(0,30)}</td>
+      <td><span class="pill ${sc(r.shipment_status)}">${r.shipment_status}</span></td>
+      <td class="num">${r.total_skus}</td>
+      <td class="num ${+r.days_since_shipped>=15&&r.shipment_status==='IN_TRANSIT'?'neg':''}"><b>${num(+(r.total_qty||0))}</b></td>
+      <td class="num ${+r.days_since_shipped>=15?'neg':''}">${r.days_since_shipped||0}d</td>
+    </tr>`).join('')}
+    </tbody></table></div></div>` 
+  : '<div class="card"><div style="padding:14px 20px;color:var(--pos)">✓ Koi active shipment nahi</div></div>';
+
+  // 🔙 Removal orders - Amazon "Completed" bolta he shipped hote hi; MILA ya
+  // nahi wo hum track karte hain
+  const rem=fAcct(DATA.removals||[]);
+  const inTransit=r=>['In Transit','Out for Delivery'].includes(r.courier_status);
+  const remClaim=rem.filter(r=>+r.days_since_shipped>60&&+r.days_since_shipped<=120&&!inTransit(r));
+  const remClaimQty=remClaim.reduce((s,x)=>s+ +(x.shipped_qty||0),0);
+  const rem120=rem.filter(r=>+r.days_since_shipped>120&&!inTransit(r));
+  const rem120qty=rem120.reduce((s,x)=>s+ +(x.shipped_qty||0),0);
+  const remCard=document.getElementById('si_removals_card');
+  if(remCard) remCard.innerHTML=rem.length?`
+    <div class="card" ${(remClaim.length||rem120.length)?'style="border:1px solid var(--red)"':''}><div class="card-head"><h2>🔙 Removal Orders — Amazon se wapas aata maal</h2><span class="hint">${rem.length} lines · <b style="color:var(--red)">CLAIM WINDOW (60-120 din): ${remClaim.length} lines / ${num(remClaimQty)} units — SC me abhi dikhenge, ABHI claim karo</b> · <b style="color:var(--amber)">120+ purane: ${rem120.length} lines / ${num(rem120qty)} units (sirf reimbursement case)</b> · delivery sweep se auto-clear</span></div>
+    <div class="table-scroll" style="max-height:400px"><table><thead><tr><th>Item</th><th>Account</th><th>Order ID</th><th>Bheja</th><th class="num">Din</th><th class="num">Qty</th><th>Courier · Tracking</th><th>Courier Status</th><th>Status</th></tr></thead><tbody>
+    ${rem.map(r=>{
+      const late=+r.days_since_shipped>15;
+      const cs=r.courier_status;
+      const csTxt=cs==='NO_DATA'?'courier me nahi mila':(cs||'—');
+      const csCol=cs==='In Transit'||cs==='Out for Delivery'?'var(--accent)':(cs==='Returned'?'var(--red)':(cs==='NO_DATA'||cs==='Created'?'var(--amber)':'var(--text2)'));
+      return `<tr ${late?'style="background:rgba(255,80,80,0.07)"':''}>
+        <td><b>${r.vyapar_item}</b></td><td>${r.account}</td>
+        <td style="font-family:var(--mono);font-size:11px">${r.order_id}</td>
+        <td style="font-size:12px">${r.shipped_on||'—'}</td>
+        <td class="num ${late?'neg':''}">${r.days_since_shipped!=null?r.days_since_shipped:'—'}</td>
+        <td class="num">${num(+r.shipped_qty)}</td>
+        <td style="font-size:11px">${(r.carrier||'—')}${r.tracking_number?' · '+r.tracking_number:''}</td>
+        <td style="font-size:11px;font-weight:600;color:${csCol}">${csTxt}</td>
+        <td><span class="pill ${late?'p-now':'p-soon'}">${r.status}</span>${(r.status.startsWith('CLAIM')||r.status.startsWith('PURANA'))?`<br><button onclick="copyClaim(this,'${r.order_id}','${(r.tracking_number||'')}','${r.shipped_on||''}',${+r.shipped_qty},'${(r.sku||'').replace(/'/g,"\\'")}')" style="margin-top:4px;background:var(--panel);color:var(--accent);border:1px solid var(--accent);padding:2px 8px;border-radius:5px;cursor:pointer;font-size:10px">📋 Claim text</button>`:''}</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div></div>`
+  :'';
+}
+function copyClaim(btn,orderId,tracking,shipped,qty,sku){
+  const txt=`Hello,
+
+I am writing regarding my removal order ${orderId}.
+
+A removal shipment of ${qty} unit(s) (SKU: ${sku}) was dispatched from your fulfilment centre on ${shipped}${tracking?` with tracking number ${tracking}`:''}, but it has NEVER been delivered to my address. It has now been significantly more than 30 days since dispatch, which is well beyond the expected delivery window for removal orders.
+
+The tracking number is no longer traceable in any system, and there is no proof of delivery available.
+
+As per Amazon's FBA removal policy, since the shipment is lost in transit and was never delivered, I request reimbursement for these ${qty} unit(s).
+
+Removal Order ID: ${orderId}
+Ship date: ${shipped}
+Tracking: ${tracking||'N/A'}
+Quantity not received: ${qty}
+
+Please process the reimbursement at the earliest.
+
+Thank you.`;
+  navigator.clipboard.writeText(txt).then(()=>{btn.textContent='✔ Copied!';setTimeout(()=>{btn.textContent='📋 Claim text';},2000);});
+}
+function renderReturns(){
+  const RMAP={};(DATA.prodRatings||[]).forEach(r=>{if(r.vyapar_item)RMAP[r.vyapar_item]=r;});
+  const ret=fAcct(DATA.returnsSumm||[]).map(x=>{const rv=RMAP[x.vyapar_item]||{};return{...x,rating:rv.rating!=null?+rv.rating:null,total_reviews:rv.total_reviews!=null?+rv.total_reviews:null};}).sort((a,b)=>+b.units_returned-+a.units_returned);
+  const retSorted=sorted(ret,'v-returns','units_returned','desc');
+  const nc=fAcct(DATA.noncomp||[]);
+  const stranded=fAcct(DATA.strandedData||[]);
+  const comp=fAcct(DATA.compPricing||[]);
+  const totalReturned=ret.reduce((s,x)=>s+ +x.units_returned,0);
+  const totalRTO=ret.reduce((s,x)=>s+ +(x.rto_units||0),0);
+  const avgPct=ret.length?Math.round(ret.filter(x=>x.return_pct).reduce((s,x)=>s+ +x.return_pct,0)/ret.filter(x=>x.return_pct).length*10)/10:0;
+  document.getElementById('v-returns').innerHTML=`
+    <div class="kpis">
+      <div class="kpi red"><div class="label">Customer Returns (30d)</div><div class="value neg">${num(totalReturned)}</div><div class="sub">customer ne wapas kiya</div></div>
+      <div class="kpi amber"><div class="label">RTO (30d)</div><div class="value warn">${num(totalRTO)}</div><div class="sub">deliver nahi hua / mana kar diya</div></div>
+      <div class="kpi amber"><div class="label">Avg Return Rate</div><div class="value warn">${avgPct}%</div><div class="sub">sirf customer returns se</div></div>
+      <div class="kpi ${nc.filter(x=>+x.qty_missing>0).length>0?'red':''}" ><div class="label">FC Missing (Noncompliance)</div><div class="value ${nc.filter(x=>+x.qty_missing>0).length>0?'neg':''}">${nc.filter(x=>+x.qty_missing>0).reduce((s,x)=>s+ +x.qty_missing,0)}</div><div class="sub">units shipment mein missing</div></div>
+      <div class="kpi ${stranded.length>0?'amber':''}" ><div class="label">Stranded at FC</div><div class="value ${stranded.length>0?'warn':''}">${stranded.reduce((s,x)=>s+ +x.qty_stranded,0)}</div><div class="sub">${stranded.length} SKUs inactive listing</div></div>
+    </div>
+
+    ${retSorted.length?`<div class="card"><div class="card-head"><h2>Returns — Product wise (30 days)</h2><span class="hint">Customer return aur RTO alag · Wajah pe hover = poori list · column click = sort</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-returns','vyapar_item','Product','units_returned')}
+      ${sth('v-returns','account','Account','units_returned')}
+      ${sthN('v-returns','units_returned','Customer Return','units_returned')}
+      ${sthN('v-returns','rto_units','RTO','units_returned')}
+      ${sthN('v-returns','units_sold','Sold','units_returned')}
+      ${sthN('v-returns','return_pct','Return %','units_returned')}
+      ${sthN('v-returns','rating','⭐ Rating','units_returned')}
+      ${sthN('v-returns','total_reviews','Reviews','units_returned')}
+      <th>Wajah (kitni baar)</th></tr></thead><tbody>
+    ${retSorted.map(r=>`<tr><td><b>${r.vyapar_item||r.amazon_sku}</b></td><td>${r.account}</td>
+      <td class="num neg">${+r.units_returned>0?num(+r.units_returned):'—'}</td>
+      <td class="num warn">${+(r.rto_units||0)>0?num(+r.rto_units):'—'}</td>
+      <td class="num">${num(+r.units_sold)}</td>
+      <td class="num ${+r.return_pct>10?'neg':+r.return_pct>5?'warn':''}">${r.return_pct!=null?r.return_pct+'%':'—'}</td>
+      <td class="num ${r.rating!=null?(r.rating<3.5?'neg':r.rating<4?'warn':'pos'):''}">${r.rating!=null?r.rating.toFixed(1)+'★':'—'}</td>
+      <td class="num">${r.total_reviews!=null?num(r.total_reviews):'—'}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:280px;overflow:hidden;text-overflow:ellipsis" title="${(r.reasons||'').replace(/"/g,'&quot;')}">${(r.reasons||'—').substring(0,70)}</td>
+    </tr>`).join('')}</tbody></table></div></div>`:''}
+
+    ${nc.filter(x=>+x.qty_missing>0).length?`<div class="card" style="border:2px solid var(--neg)"><div class="card-head"><h2>🚨 FBA Inbound Noncompliance — missing units</h2><span class="hint">Amazon FC pe received less than sent</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-nc','account','Account','qty_missing')}
+      ${sth('v-nc','amazon_sku','SKU','qty_missing')}
+      ${sth('v-nc','vyapar_item','Item','qty_missing')}
+      ${sth('v-nc','shipment_id','Shipment ID','qty_missing')}
+      ${sthN('v-nc','qty_expected','Expected','qty_missing')}
+      ${sthN('v-nc','qty_received','Received','qty_missing')}
+      ${sthN('v-nc','qty_missing','Missing','qty_missing')}
+      <th>Type</th>
+    </tr></thead><tbody>
+    ${sorted(nc.filter(x=>+x.qty_missing>0),'v-nc','qty_missing','desc').map(r=>`<tr style="background:rgba(255,80,80,0.07)">
+      <td>${r.account}</td><td style="font-size:11px;font-family:var(--mono)">${r.amazon_sku}</td>
+      <td>${r.vyapar_item||'—'}</td><td style="font-size:11px;font-family:var(--mono)">${r.shipment_id||'—'}</td>
+      <td class="num">${num(+r.qty_expected)}</td><td class="num">${num(+r.qty_received)}</td>
+      <td class="num neg"><b>${num(+r.qty_missing)}</b></td>
+      <td style="font-size:11px">${r.noncompliance_type||'—'}</td>
+    </tr>`).join('')}</tbody></table></div></div>`:''}
+
+    ${stranded.length?`<div class="card" style="border:1px solid var(--neg)"><div class="card-head"><h2>⚠ Stranded Inventory — FC mein hai, listing inactive</h2><span class="hint">Fix listing → items sellable honge</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-strand','account','Account','qty_stranded')}
+      ${sth('v-strand','amazon_sku','SKU','qty_stranded')}
+      ${sth('v-strand','vyapar_item','Item','qty_stranded')}
+      ${sthN('v-strand','qty_stranded','Qty Stranded','qty_stranded')}
+      ${sth('v-strand','reason','Reason','qty_stranded')}
+    </tr></thead><tbody>
+    ${sorted(stranded,'v-strand','qty_stranded','desc').map(r=>`<tr><td>${r.account}</td><td style="font-size:11px;font-family:var(--mono)">${r.amazon_sku}</td>
+      <td>${r.vyapar_item||'—'}</td>
+      <td class="num neg"><b>${num(+r.qty_stranded)}</b></td>
+      <td style="font-size:11px;color:var(--neg)">${r.reason||'—'}</td>
+    </tr>`).join('')}</tbody></table></div></div>`:'<div class="card"><div style="padding:14px 20px;color:var(--pos)">✓ Koi stranded inventory nahi</div></div>'}
+
+    ${comp.length?`<div class="card"><div class="card-head"><h2>🔴 Competitor Alert — Buy Box Lost / Undercut</h2><span class="hint">UNDERCUT = competitor sasta bech raha · BB LOST = buy box me aap ho hi nahi · live pricing API se</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-comp','account','Account','competitor_price')}
+      ${sth('v-comp','product_name','Product','competitor_price')}
+      ${sthN('v-comp','num_sellers','Sellers','competitor_price')}
+      ${sthN('v-comp','our_stock','WH Stock','competitor_price')}
+      ${sthN('v-comp','my_price','My Price','competitor_price')}
+      ${sthN('v-comp','competitor_price','Comp Price','competitor_price')}
+      <th style="text-align:center">Status</th>
+      <th style="text-align:center">Amazon</th>
+    </tr></thead><tbody>
+    ${sorted(comp.filter(x=>+x.my_price===0||+x.competitor_price<+x.my_price),'v-comp','competitor_price','asc').map(r=>{
+      const myP = +r.my_price;
+      const compP = +r.competitor_price;
+      const isBBLost = myP === 0; // pricing API me hamara offer mila hi nahi
+      const diff = isBBLost ? 'BUY BOX LOST' : `−₹${num(myP-compP)} (${Math.round((myP-compP)/myP*100)}%)`;
+      const stockVal = +r.our_stock;
+      const stockLabel = stockVal < 0 ? '?' : stockVal===0 ? '<span style="color:var(--neg)">0</span>' : num(stockVal);
+      return `<tr>
+        <td><b>${r.account}</b></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${(r.product_name||r.vyapar_item||r.asin||'—').substring(0,45)}</td>
+        <td class="num">${r.num_sellers||1}</td>
+        <td class="num">${stockLabel}</td>
+        <td class="num pos"><b>${isBBLost?'—':'₹'+num(myP)}</b></td>
+        <td class="num neg"><b>₹${num(compP)}</b></td>
+        <td style="text-align:center"><span class="pill ${isBBLost?'p-none':'p-now'}">${diff}</span></td>
+        <td style="text-align:center">${r.asin?`<a href="https://www.amazon.in/dp/${r.asin}" target="_blank" style="color:var(--accent);font-size:11px">View ↗</a>`:'—'}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div></div>`
+    :'<div class="card"><div style="padding:14px 20px;color:var(--pos)">✓ Koi competitor alert nahi</div></div>'}
+  `;
+}
+function renderReimb(){
+  const d=fAcct(DATA.reimbData||[]);
+  const total=d.reduce((s,x)=>s+ +x.amount_total,0);
+  const belowCogs=d.filter(x=>x.below_cogs);
+  const byReason={};
+  d.forEach(x=>{const k=x.reason||'Other';byReason[k]=(byReason[k]||0)+ +x.amount_total;});
+  document.getElementById('v-reimb').innerHTML=`
+    <div class="kpis">
+      <div class="kpi pos"><div class="label">Total Reimbursements (30d)</div><div class="value pos">${inr(total)}</div><div class="sub">${d.length} records</div></div>
+      <div class="kpi ${belowCogs.length>0?'red':''}" ><div class="label">Below COGS</div><div class="value ${belowCogs.length>0?'neg':''}">${belowCogs.length}</div><div class="sub">Lost/Damaged me COGS se kam mila — dispute karo</div></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:-12px 0 20px">
+      ${Object.entries(byReason).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px">${k} <b style="color:${v<0?'var(--red)':'var(--accent)'}">${inr(v)}</b></span>`).join('')}
+    </div>
+    ${d.length?`<div class="card"><div class="card-head"><h2>Reimbursements — Last 30 Days</h2><span class="hint">🔴 = COGS se kam · column click = sort</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-reimb','account','Account','amount_total')}
+      ${sth('v-reimb','amazon_sku','SKU','amount_total')}
+      ${sth('v-reimb','vyapar_item','Item','amount_total')}
+      ${sth('v-reimb','reason','Reason','amount_total')}
+      ${sthN('v-reimb','qty_reimbursed_cash','Qty','amount_total')}
+      ${sthN('v-reimb','reimbursed_per_unit','Reimb/Unit','amount_total')}
+      ${sthN('v-reimb','our_cogs','Our COGS','amount_total')}
+      ${sthN('v-reimb','amount_total','Total','amount_total')}
+    </tr></thead><tbody>
+    ${sorted(d,'v-reimb','amount_total','desc').map(r=>`<tr ${r.below_cogs?'style="background:rgba(255,80,80,0.07)"':''}>
+      <td>${r.account}</td><td style="font-size:11px;font-family:var(--mono)">${r.amazon_sku}</td>
+      <td>${r.vyapar_item||'—'}</td><td style="font-size:11px">${r.reason||'—'}</td>
+      <td class="num">${num((+r.qty_reimbursed_cash)+(+r.qty_reimbursed_inventory))}</td>
+      <td class="num ${r.below_cogs?'neg':''}">₹${(+r.reimbursed_per_unit).toFixed(0)}</td>
+      <td class="num">₹${num(+(r.our_cogs||0))}</td>
+      <td class="num pos"><b>${inr(+r.amount_total)}</b></td>
+    </tr>`).join('')}</tbody></table></div></div>`
+    :'<div class="card"><div style="padding:14px 20px;color:var(--text2)">Koi data nahi — fetch_returns.py chalane ke baad aayega</div></div>'}`;
+}
+function renderCharges(){
+  const d=DATA.charges||[];
+  if(!d.length){
+    document.getElementById('v-charges').innerHTML=`
+      <div class="kpis"><div class="kpi amber"><div class="label">Settlement Data</div><div class="value warn">Missing</div><div class="sub">weekly pull nahi chala</div></div></div>
+      <div class="card"><div style="padding:20px;font-size:13px;color:var(--text2);line-height:2.2">
+        Settlement data nahi hai — weekly pull (Sunday) mein aata hai.<br>
+        <b>Abhi manually run karo:</b><br>
+        <code style="background:var(--panel);padding:4px 10px;border-radius:4px;font-family:var(--mono)">cd C:\\sandip_dashboard</code><br>
+        <code style="background:var(--panel);padding:4px 10px;border-radius:4px;font-family:var(--mono)">python fetch_settlement.py</code><br><br>
+        ~15-20 min lagega. Tab reload karo baad mein.
+      </div></div>`;
+    return;
+  }
+  const tot=(f)=>d.reduce((s,x)=>s+ +(x[f]||0),0);
+  const cutoff30=localDate(new Date(Date.now()-30*86400000));
+  const bankIn=fAcct(DATA.payouts||[]).filter(p=>p.deposit_date&&p.deposit_date>=cutoff30).reduce((s,p)=>s+ +(p.deposited||0),0);
+  document.getElementById('v-charges').innerHTML=`
+    <div class="kpis">
+      <div class="kpi pos"><div class="label">🏦 Bank Me Aaya (30d)</div><div class="value pos">${inr(bankIn)}</div><div class="sub">deposits ka jod — bank statement se milega</div></div>
+      <div class="kpi"><div class="label">Gross Sales (30d)</div><div class="value">${inr(tot('gross_sales'))}</div></div>
+      <div class="kpi red"><div class="label">Total Deductions</div><div class="value neg">${inr(tot('commission')+tot('fba_fees')+tot('closing_fee')+tot('ads')+tot('tcs_tds')+tot('fee_gst')+tot('promotions')+tot('other_fees'))}</div><div class="sub">commission+FBA+closing+ads+TCS+GST+promo+other</div></div>
+      <div class="kpi pos"><div class="label">Net Settled</div><div class="value pos">${inr(tot('net_settled'))}</div></div>
+      <div class="kpi amber"><div class="label">Ads Spent</div><div class="value warn">${inr(tot('ads'))}</div></div>
+    </div>
+    <div style="padding:8px 20px;font-size:12px;color:var(--text2);background:var(--panel);border-bottom:1px solid var(--border)">
+      📌 FBA Shipping = FBA Weight Handling + Pick & Pack fees combined. Reimbursements = fba_reimbursements tab mein dekho. Return charges = refund commission mein hai.
+    </div>
+    ${(()=>{
+      const po=fAcct(DATA.payouts||[]);
+      if(!po.length)return'';
+      return `<div class="card"><div class="card-head"><h2>💰 Har Settlement — Bank se Milao</h2><span class="hint">"Deposited" EXACT wahi amount he jo bank me aaya · baaki uska breakup</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Account</th><th>Period</th><th>Deposit</th><th class="num">Gross</th><th class="num">Commission</th><th class="num">FBA</th><th class="num">Closing</th><th class="num">Fee GST</th><th class="num">Ads</th><th class="num">Promos</th><th class="num">Refunds</th><th class="num">TCS/TDS</th><th class="num">Deposited ₹</th></tr></thead><tbody>
+      ${po.map(p=>`<tr><td><b>${p.account}</b></td><td style="font-size:11px">${(p.start_date||'').slice(5)} → ${(p.end_date||'').slice(5)}</td><td style="font-size:11px">${p.deposit_date||'—'}</td><td class="num">${inr(+p.gross_sales)}</td><td class="num neg">${inr(+p.commission)}</td><td class="num neg">${inr(+p.fba_fees)}</td><td class="num neg">${inr(+p.closing_fee)}</td><td class="num neg">${inr(+p.fee_gst)}</td><td class="num neg">${inr(+p.ads)}</td><td class="num neg">${inr(+p.promotions)}</td><td class="num neg">${inr(+p.refunds_given)}</td><td class="num neg">${inr(+p.tcs_tds)}</td><td class="num pos"><b>${inr(+p.deposited)}</b></td></tr>`).join('')}
+      </tbody></table></div></div>`;
+    })()}
+    <div class="card"><div class="card-head"><h2>Amazon Charges — Last 30 Days (Settlement Data)</h2><span class="hint">transaction posted-date basis · bank se seedha match nahi hota — uske liye upar wali table</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-charges','account','Account','net_settled')}
+      ${sthN('v-charges','gross_sales','Gross Sales','net_settled')}
+      ${sthN('v-charges','commission','Commission','net_settled')}
+      ${sthN('v-charges','fba_fees','FBA Fees','net_settled')}
+      ${sthN('v-charges','closing_fee','Closing Fee','net_settled')}
+      ${sthN('v-charges','fee_gst','Fee GST','net_settled')}
+      ${sthN('v-charges','ads','Ads','net_settled')}
+      ${sthN('v-charges','promotions','Promos','net_settled')}
+      ${sthN('v-charges','other_fees','Storage/Other','net_settled')}
+      ${sthN('v-charges','return_charges','Return Charges','net_settled')}
+      ${sthN('v-charges','refunds_given','Refunds Given','net_settled')}
+      ${sthN('v-charges','tcs_tds','TCS/TDS','net_settled')}
+      ${sthN('v-charges','net_settled','Net Settled','net_settled')}
+    </tr></thead><tbody>
+    ${sorted(d,'v-charges','net_settled','desc').map(r=>`<tr>
+      <td><b>${r.account}</b></td>
+      <td class="num">${inr(+r.gross_sales)}</td>
+      <td class="num neg">${inr(+r.commission)}</td>
+      <td class="num neg">${inr(+r.fba_fees)}</td>
+      <td class="num neg">${inr(+r.closing_fee)}</td>
+      <td class="num neg">${inr(+(r.fee_gst||0))}</td>
+      <td class="num neg">${inr(+r.ads)}</td>
+      <td class="num neg">${inr(+r.promotions)}</td>
+      <td class="num neg">${inr(+(r.other_fees||0))}</td>
+      <td class="num neg">${inr(+r.return_charges)}</td>
+      <td class="num neg">${inr(+r.refunds_given)}</td>
+      <td class="num neg">${inr(+r.tcs_tds)}</td>
+      <td class="num pos"><b>${inr(+r.net_settled)}</b></td>
+    </tr>`).join('')}
+    <tr style="border-top:2px solid var(--border);font-weight:600">
+      <td><b>TOTAL</b></td>
+      <td class="num">${inr(tot('gross_sales'))}</td>
+      <td class="num neg">${inr(tot('commission'))}</td>
+      <td class="num neg">${inr(tot('fba_fees'))}</td>
+      <td class="num neg">${inr(tot('closing_fee'))}</td>
+      <td class="num neg">${inr(tot('fee_gst'))}</td>
+      <td class="num neg">${inr(tot('ads'))}</td>
+      <td class="num neg">${inr(tot('promotions'))}</td>
+      <td class="num neg">${inr(tot('other_fees'))}</td>
+      <td class="num neg">${inr(tot('return_charges'))}</td>
+      <td class="num neg">${inr(tot('refunds_given'))}</td>
+      <td class="num neg">${inr(tot('tcs_tds'))}</td>
+      <td class="num pos"><b>${inr(tot('net_settled'))}</b></td>
+    </tr>
+    </tbody></table></div></div>`;
+}
+const CO_INP='background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:7px;font-family:var(--sans);font-size:13px';
+function renderChina(){
+  // Re-render pe scroll wahi rahe jahan tha (edit/delete click pe upar na bhage)
+  const _sc=document.querySelector('#v-china .table-scroll');
+  const _scTop=_sc?_sc.scrollTop:0;
+  const _winY=window.scrollY;
+  const src=DATA.china;
+  const newPurch=DATA.newPurch||[];
+  const pend=c=>Math.max(0,(+c.quantity||0)-(+c.received_qty||0));
+  const totalPending=src.reduce((s,x)=>s+pend(x),0);
+  // Suggestions seedha Vyapar ke active items se (naye items sync ke turant baad aa jaate hain)
+  const itemList=[...new Set([
+    ...(DATA.itemNames||[]).map(x=>x.item_name),
+    ...(DATA.reorder||[]).map(x=>x.item_name)
+  ])].sort();
+  document.getElementById('v-china').innerHTML=`
+    ${ACCT?'<div class="card"><div style="padding:14px 20px;color:var(--text2);font-size:13px">China orders supplier-level hain (account-wise nahi). Sabhi orders dikha rahe hain.</div></div>':''}
+    <div class="kpis">
+      <div class="kpi"><div class="label">Units Raste Me (pending)</div><div class="value">${num(totalPending)}</div><div class="sub">Vyapar me purchase hote hi khud minus</div></div>
+      <div class="kpi amber"><div class="label">Total Value</div><div class="value">¥${num(Math.round(src.reduce((s,x)=>s+ +x.total_cost,0)))}</div></div>
+    </div>
+    <div class="card"><div class="card-head"><h2>➕ Naya China Order</h2><span class="hint">item + qty likho · price optional · Save dabao — seedha list me</span></div>
+      <div style="padding:14px 20px">
+        <div id="coLines"></div>
+        <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
+          <button onclick="addChinaLine()" style="${CO_INP};cursor:pointer">+ Item</button>
+          <button onclick="saveChinaOrder(this)" style="background:var(--accent);color:#000;border:none;padding:8px 18px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600">💾 Save Order</button>
+          <button onclick="syncVyapar(this)" title="Vyapar ke naye items/stock abhi le aao" style="${CO_INP};cursor:pointer">🔄 Vyapar Sync</button>
+          <span id="coMsg" class="hint">naya item list me nahi? Sync dabao — ya seedha naam type kar do, wo bhi chalega</span>
+        </div>
+      </div>
+      <datalist id="itemDL">${itemList.map(i=>`<option value="${i}">`).join('')}</datalist>
+    </div>
+    ${newPurch.length?`<div class="card" style="border:1px solid var(--amber)"><div class="card-head"><h2>📦 Bina Order ke Aaya Maal</h2><span class="hint">Vyapar me purchase hui, kisi open china order me nahi tha — new item ya order likhna bhool gaye</span></div>
+    <div class="table-scroll"><table><thead><tr><th>Item</th><th class="num">Qty</th><th>Purchase Date</th></tr></thead><tbody>
+    ${newPurch.map(p=>`<tr><td><b>${p.item_name}</b></td><td class="num">${num(+p.unmatched_qty)}</td><td>${p.txn_date}</td></tr>`).join('')}
+    </tbody></table></div></div>`:''}
+    ${(()=>{
+      // Ek item ka maal kai orders me ho sakta he — sab jod ke EK line me dikhao.
+      // Jo poora aa gaya (pending 0) wo list me hi nahi aata.
+      const byItem={};
+      src.forEach(c=>{
+        const p=pend(c); if(p<=0)return;
+        const k=c.vyapar_item||'—';
+        if(!byItem[k])byItem[k]={vyapar_item:k,pending:0,orders:0,value:0,lines:[]};
+        byItem[k].pending+=p; byItem[k].orders++; byItem[k].value+=p*(+c.unit_cost||0);
+        byItem[k].lines.push(c);
+      });
+      const merged=Object.values(byItem);
+      merged.forEach(m=>m.lines.sort((a,b)=>(a.order_date||'').localeCompare(b.order_date||'')));
+      return `<div class="card"><div class="card-head"><h2>All Incoming Items</h2><span class="hint">${merged.length} items · ${num(totalPending)} units aane wale · ek item kai orders me ho to jod ke ek line me · line pe click = order-wise detail</span></div>
+      <div class="table-scroll"><table><thead><tr>
+        ${sth('v-china_items','vyapar_item','Item','pending')}
+        ${sthN('v-china_items','pending','Aane Wala Qty','pending')}
+        ${sthN('v-china_items','orders','Orders','pending')}
+        <th>Order Dates</th>
+        ${sthN('v-china_items','value','Value ¥','pending')}
+      </tr></thead><tbody>
+      ${sorted(merged,'v-china_items','pending','desc').map(m=>{
+        const open=CH_OPEN===m.vyapar_item;
+        const dates=m.lines.map(c=>num(pend(c))+' ('+(c.order_date||'').slice(5)+')').join(' + ');
+        let html=`<tr onclick="CH_OPEN=${open?'null':`'${m.vyapar_item.replace(/'/g,"\\'")}'`};renderChina();" style="cursor:pointer${open?';background:rgba(74,222,128,0.06)':''}">
+          <td><b>${m.vyapar_item}</b>${m.orders>1?` <span style="color:var(--amber);font-size:11px">${m.orders} orders</span>`:''}</td>
+          <td class="num"><b>${num(m.pending)}</b></td>
+          <td class="num">${m.orders}</td>
+          <td style="font-size:12px;color:var(--text2)">${dates}</td>
+          <td class="num">${m.value?'¥'+num(Math.round(m.value)):'—'}</td></tr>`;
+        if(open){
+          html+=m.lines.map(c=>{
+            if(CH_EDIT===c.id){
+              return `<tr style="background:rgba(74,222,128,0.10)"><td style="padding-left:28px;font-size:12px;color:var(--text2)">↳ order line</td>
+                <td class="num"><input type="number" id="ce_qty" value="${c.quantity}" min="${+(c.received_qty||0)||1}" style="${CO_INP};width:85px;padding:4px 8px"></td>
+                <td><input type="date" id="ce_date" value="${c.order_date}" style="${CO_INP};padding:4px 8px"></td>
+                <td class="num"><input type="number" id="ce_cost" value="${c.unit_cost||''}" min="0" step="0.01" placeholder="¥" style="${CO_INP};width:85px;padding:4px 8px"></td>
+                <td style="white-space:nowrap"><button onclick="event.stopPropagation();saveChinaEdit(${c.id})" style="background:var(--accent);color:#000;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:600">✔</button>
+                <button onclick="event.stopPropagation();CH_EDIT=null;renderChina();" style="${CO_INP};padding:4px 10px;cursor:pointer">✖</button></td></tr>`;
+            }
+            return `<tr style="background:rgba(255,255,255,0.02)"><td style="padding-left:28px;font-size:12px;color:var(--text2)">↳ ${c.order_ref||'—'}</td>
+              <td class="num">${num(pend(c))}${+(c.received_qty||0)>0?` <span style="font-size:11px;color:var(--text2)">(${num(+c.quantity)} me se)</span>`:''}</td>
+              <td style="font-size:12px">${c.order_date}</td>
+              <td class="num" style="font-size:12px">${c.unit_cost?'¥'+num(+c.unit_cost):'—'}</td>
+              <td style="white-space:nowrap"><button onclick="event.stopPropagation();CH_EDIT=${c.id};renderChina();" title="Badlo" style="background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text2)">✎</button>
+              <button onclick="event.stopPropagation();deleteChinaLine(${c.id},'${(c.vyapar_item||'').replace(/'/g,"\\'")}')" title="Hatao" style="background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--red)">🗑</button></td></tr>`;
+          }).join('');
+        }
+        return html;
+      }).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:30px">Koi maal raste me nahi</td></tr>'}
+      </tbody></table></div></div>`;
+    })()}`;
+  addChinaLine();
+  const _sc2=document.querySelector('#v-china .table-scroll');
+  if(_sc2)_sc2.scrollTop=_scTop;
+  window.scrollTo(0,_winY);
+}
+let CH_EDIT=null;
+let CH_OPEN=null; // kis item ki order-wise detail khuli he
+async function syncVyapar(btn){
+  const msg=document.getElementById('coMsg');
+  btn.disabled=true;msg.textContent='Vyapar sync chal raha he… (2-5 sec)';
+  try{
+    const r=await Promise.resolve({json:async()=>({ok:false,output:'Vyapar sync sirf PC wale dashboard se chalta he'})});
+    const j=await r.json();
+    if(j.ok){
+      DATA.itemNames=await q('active_item_names?limit=1000')||DATA.itemNames;
+      msg.textContent='✓ Sync ho gaya — naye items ab list me hain';
+      renderChina();
+    }else{
+      msg.textContent='✗ Sync fail: '+(j.output||'').substring(0,80);
+      btn.disabled=false;
+    }
+  }catch(e){
+    msg.textContent='✗ Sync endpoint nahi mila — start_dashboard.bat se server chalao';
+    btn.disabled=false;
+  }
+}
+async function saveChinaEdit(id){
+  const qty=parseInt(document.getElementById('ce_qty').value||0);
+  const date=document.getElementById('ce_date').value;
+  const cost=parseFloat(document.getElementById('ce_cost').value||0);
+  if(!qty||qty<1){alert('Qty sahi likho');return;}
+  const body={quantity:qty,order_date:date,unit_cost:cost||null,total_cost:cost?Math.round(cost*qty*100)/100:null};
+  const r=await fetch(writeURL(`china_orders?id=eq.${id}`),{method:'PATCH',
+    headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){alert('Save fail hua: '+r.status);return;}
+  CH_EDIT=null;
+  DATA.china=await q('china_orders?status=in.(ordered,in_transit)&order=order_date.desc');
+  renderChina();
+}
+async function deleteChinaLine(id,name){
+  if(!confirm(`"${name}" ki ye line hata dein? Wapas nahi aayegi.`))return;
+  const r=await fetch(writeURL(`china_orders?id=eq.${id}`),{method:'DELETE',headers:H});
+  if(!r.ok){alert('Delete fail hua: '+r.status);return;}
+  DATA.china=await q('china_orders?status=in.(ordered,in_transit)&order=order_date.desc');
+  renderChina();
+}
+function addChinaLine(){
+  const d=document.getElementById('coLines');if(!d)return;
+  const first=d.children.length===0;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:10px;margin-bottom:6px;flex-wrap:wrap;align-items:center';
+  row.innerHTML=`${first?`<input type="date" class="co-date" value="${localDate()}" style="${CO_INP}">`:'<span style="width:148px"></span>'}
+    <input list="itemDL" class="co-item" placeholder="Item name" style="${CO_INP};width:260px">
+    <input type="number" class="co-qty" placeholder="Qty" min="1" style="${CO_INP};width:90px">
+    <input type="number" class="co-cost" placeholder="Price ¥ (opt)" min="0" step="0.01" style="${CO_INP};width:110px">
+    ${first?'':`<button onclick="this.parentElement.remove()" style="${CO_INP};cursor:pointer;color:var(--red)">✕</button>`}`;
+  d.appendChild(row);
+}
+async function saveChinaOrder(btn){
+  const date=document.querySelector('#coLines .co-date')?.value||localDate();
+  const msg=document.getElementById('coMsg');
+  const rows=[...document.querySelectorAll('#coLines > div')].map(r=>({
+    item:r.querySelector('.co-item').value.trim(),
+    qty:parseInt(r.querySelector('.co-qty').value||0),
+    cost:parseFloat(r.querySelector('.co-cost').value||0)
+  })).filter(r=>r.item&&r.qty>0);
+  if(!rows.length){msg.textContent='⚠ Kam se kam ek item + qty likho';return;}
+  if(window.CH_SAVING)return; // double-click = do baar save, uska guard
+  // Item pehle se kisi pending order me he to pehle puchh lo
+  const pendingNames=new Set((DATA.china||[]).filter(x=>x.status==='ordered'||x.status==='in_transit').map(x=>x.vyapar_item));
+  const dupes=[...new Set(rows.filter(r=>pendingNames.has(r.item)).map(r=>r.item))];
+  if(dupes.length&&!confirm(`⚠ "${dupes.join(', ')}" pehle se pending china orders me he — table me 2 lines dikhengi.\n\nPhir bhi naya order add karein?`))return;
+  window.CH_SAVING=true;
+  btn.disabled=true;msg.textContent='saving…';
+  const ref='CO-'+date; // ref auto-generate hota he, user ko nahi likhna padta
+  const payload=rows.map(r=>({order_ref:ref,order_date:date,supplier_name:null,vyapar_item:r.item,quantity:r.qty,unit_cost:r.cost||null,total_cost:r.cost?Math.round(r.cost*r.qty*100)/100:null,status:'ordered'}));
+  try{
+    const res=await fetch(writeURL('china_orders'),{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(payload)});
+    if(res.ok){
+      msg.textContent='✓ Save ho gaya';
+      const fresh=await q('china_orders?status=in.(ordered,in_transit)&order=order_date.desc');
+      if(fresh!==null)DATA.china=fresh;
+      renderChina();
+    }else{
+      const t=await res.text();
+      msg.textContent='✗ Error: '+t.substring(0,90);
+      btn.disabled=false;
+    }
+  }catch(e){msg.textContent='✗ Network error — dobara try karo';btn.disabled=false;}
+  finally{window.CH_SAVING=false;}
+}
+function renderRecv(){
+  const r=fAcct(DATA.recvAccurate||[]);
+  const amz={};fAcct(DATA.recv||[]).forEach(a=>{amz[a.account]=a;});
+  const totalAmz=fAcct(DATA.recv||[]).reduce((s,x)=>s+ +(x.receivable||x.total_receivable||0),0);
+  const total=r.reduce((s,x)=>s+ +x.net_receivable,0);
+  const totalGross=r.reduce((s,x)=>s+ +x.gross_pending,0);
+  const asOf=(fAcct(DATA.recv||[])[0]||{}).as_of;
+  document.getElementById('v-receivable').innerHTML=`
+    <div class="kpis">
+      <div class="kpi"><div class="label">Aane Wala Paisa (COD + Prepaid)</div><div class="value">${inr(total)}</div><div class="sub">jo orders abhi tak settle NAHI hue unka jod × (1 − fees) · RTO wale nahi gine</div></div>
+      <div class="kpi amber"><div class="label">Gross Pending</div><div class="value warn">${inr(totalGross)}</div><div class="sub">fees kaatne se pehle</div></div>
+      <div class="kpi blue"><div class="label">Amazon Ka Open Balance</div><div class="value">${inr(totalAmz)}</div><div class="sub">sirf abhi ke khule settlement ka balance — hold/deferred paisa isme NAHI · ${asOf?('as of '+String(asOf).slice(0,10)):''}</div></div>
+    </div>
+    <div class="card"><div class="card-head"><h2>Receivables by Account</h2><span class="hint">"Amazon Ka Figure" = sirf khula settlement balance · "Est. Net" = pura aane wala paisa (COD+prepaid, jo abhi settle nahi hua)</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-recv','account','Account','net_receivable')}
+      <th class="num">Amazon Ka Figure</th>
+      ${sth('v-recv','settled_upto','Settled Upto','net_receivable')}
+      ${sthN('v-recv','days_pending','Din','net_receivable')}
+      ${sthN('v-recv','pending_orders','Orders','net_receivable')}
+      ${sthN('v-recv','pending_units','Units','net_receivable')}
+      ${sthN('v-recv','gross_pending','Gross','net_receivable')}
+      ${sthN('v-recv','net_receivable','Est. Net','net_receivable')}
+    </tr></thead><tbody>
+    ${sorted(r,'v-recv','net_receivable','desc').map(x=>{
+      const a=amz[x.account];
+      return `<tr>
+      <td><b>${x.account}</b></td>
+      <td class="num pos"><b>${a?inr(+(a.receivable||a.total_receivable||0)):'—'}</b></td>
+      <td style="font-size:12px">${x.settled_upto}</td>
+      <td class="num ${+x.days_pending>7?'warn':''}">${x.days_pending}d</td>
+      <td class="num">${num(+x.pending_orders)}</td>
+      <td class="num">${num(+x.pending_units)}</td>
+      <td class="num">${inr(+x.gross_pending)}</td>
+      <td class="num">${inr(+x.net_receivable)}</td>
+    </tr>`;}).join('')}
+    <tr style="border-top:2px solid var(--border);font-weight:600">
+      <td><b>TOTAL</b></td>
+      <td class="num pos"><b>${inr(totalAmz)}</b></td><td></td><td></td>
+      <td class="num">${num(r.reduce((s,x)=>s+ +x.pending_orders,0))}</td>
+      <td class="num">${num(r.reduce((s,x)=>s+ +x.pending_units,0))}</td>
+      <td class="num">${inr(totalGross)}</td>
+      <td class="num"><b>${inr(total)}</b></td>
+    </tr>
+    </tbody></table></div></div>
+    <div style="padding:10px 20px;font-size:12px;color:var(--text2)">
+      "Amazon Ka Figure" seedha Amazon ke finance API se aata he (roz update) — wahi maano. Hamara estimate cross-check ke liye he; dono paas-paas hain to sab theek chal raha he.
+    </div>`;
+}
+function renderVelocity(){
+  const vel=DATA.velocity||[];
+  const up=vel.filter(x=>VEL_UP.includes(x.trend)).sort((a,b)=>+b.this_week-+a.this_week);
+  const down=vel.filter(x=>VEL_DOWN.includes(x.trend)).sort((a,b)=>+b.last_week-+a.last_week);
+  const reorderRisk=vel.filter(x=>x.days_left_at_current_speed!=null&&+x.days_left_at_current_speed<45&&+x.this_week>=7).sort((a,b)=>+a.days_left_at_current_speed-+b.days_left_at_current_speed);
+  const velRow=x=>`<tr>
+    <td><b>${x.vyapar_item}</b></td>
+    <td style="text-align:center">${x.trend}</td>
+    <td class="num">${num(+x.last_week)}</td>
+    <td class="num"><b>${num(+x.this_week)}</b></td>
+    <td class="num ${+x.week_change>0?'pos':+x.week_change<0?'neg':''}">${+x.week_change>0?'+':''}${num(+x.week_change)}</td>
+    <td class="num">${(+x.per_day).toFixed(1)}/din</td>
+    <td class="num">${num(+(x.warehouse_stock||0))}</td>
+    <td class="num ${x.days_left_at_current_speed!=null&&+x.days_left_at_current_speed<45?'neg':''}">${x.days_left_at_current_speed!=null?x.days_left_at_current_speed+'d':'\u2014'}</td>
+  </tr>`;
+  const velTable=rows=>`<div class="table-scroll"><table><thead><tr>
+    <th>Product (sab accounts ka total)</th><th style="text-align:center">Trend</th>
+    <th class="num">Pichla Hafta</th><th class="num">Is Hafta</th><th class="num">Farak</th>
+    <th class="num">Speed</th><th class="num">WH Stock</th><th class="num">Stock Kitne Din</th>
+    </tr></thead><tbody>${rows.map(velRow).join('')}</tbody></table></div>`;
+  document.getElementById('v-velocity').innerHTML=`
+    <div style="padding:10px 16px;margin-bottom:16px;background:var(--panel);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2)">
+      \uD83D\uDCA1 <b style="color:var(--text)">Funda simple he:</b> har product ka <b>pichle 7 din</b> ka bika hua vs <b>usse pehle ke 7 din</b> ka. Sab accounts ka total. Jo achanak tez ho raha he uska stock ready rakho, jo gir raha he uska price/listing check karo.
+    </div>
+    <div class="kpis">
+      <div class="kpi pos"><div class="label">Tez Ho Rahe</div><div class="value pos">${up.length}</div><div class="sub">is hafte pichle se zyada bike</div></div>
+      <div class="kpi red"><div class="label">Gir Rahe</div><div class="value ${down.length>0?'neg':''}">${down.length}</div><div class="sub">is hafte pichle se kam bike</div></div>
+      <div class="kpi amber"><div class="label">Reorder Jaldi Karo</div><div class="value warn">${reorderRisk.length}</div><div class="sub">is speed pe stock 45 din se pehle khatam</div></div>
+    </div>
+    ${reorderRisk.length?`<div class="card" style="border:1px solid #f0b429"><div class="card-head"><h2>\u26A1 Reorder Priority \u2014 is speed pe stock jaldi khatam hoga</h2><span class="hint">China lead time 30-45 din \u2014 abhi order karo</span></div>${velTable(reorderRisk.slice(0,30))}</div>`:''}
+    <div class="card"><div class="card-head"><h2>Sab Products \u2014 Hafta vs Hafta</h2><span class="hint">column click = sort</span></div>
+    <div class="controls"><input id="velSearch" placeholder="Search product\u2026" value="${velSearch}"><select id="velFilter"><option value="">Sab</option><option value="up">\u{1F525} Tez Ho Rahe</option><option value="down">\u{1F53B} Gir Rahe</option><option value="flat">\u27a1 Waisa Hi</option><option value="reorder">\u26a1 Reorder Jaldi Karo</option></select><span class="hint" id="velCount"></span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-vel','vyapar_item','Product','this_week')}
+      <th>Kya Chal Raha He</th>
+      ${sthN('v-vel','last_week','Pichla Hafta','this_week')}
+      ${sthN('v-vel','this_week','Is Hafta','this_week')}
+      ${sthN('v-vel','week_change','Farak','this_week')}
+      ${sthN('v-vel','per_day','Roz Ka Avg','this_week')}
+      ${sthN('v-vel','warehouse_stock','Stock','this_week')}
+      ${sthN('v-vel','days_left_at_current_speed','Stock Kitne Din','this_week')}
+    </tr></thead><tbody id="velBody"></tbody></table></div></div>`;
+  drawVelTable();
+  document.getElementById('velSearch').oninput=e=>{velSearch=e.target.value;drawVelTable();};
+  const velSel=document.getElementById('velFilter');velSel.value=velFilter;
+  velSel.onchange=e=>{velFilter=e.target.value;drawVelTable();};
+}
+let velSearch='',velFilter='';
+// KPI cards ke wahi 3 group (upar renderVelocity me) - dobara na likhna pade isliye yahan ek jagah
+const VEL_UP=['\u{1F680} NEW FAST','\u{1F525} SPEEDING UP','\u{1F4C8} UP'];
+const VEL_DOWN=['\u{1F53B} DROPPING','\u{1F4C9} DOWN'];
+function velMatchesFilter(x){
+  if(!velFilter)return true;
+  if(velFilter==='up')return VEL_UP.includes(x.trend);
+  if(velFilter==='down')return VEL_DOWN.includes(x.trend);
+  if(velFilter==='flat')return !VEL_UP.includes(x.trend)&&!VEL_DOWN.includes(x.trend);
+  if(velFilter==='reorder')return x.days_left_at_current_speed!=null&&+x.days_left_at_current_speed<45&&+x.this_week>=7;
+  return true;
+}
+function velLabel(t){
+  t=t||'';
+  if(t.includes('NEW FAST'))return'<span class="pill p-ok">\u{1F680} Naya Tez</span>';
+  if(t.includes('SPEEDING'))return'<span class="pill p-ok">\u{1F525} Aur Tez Hua</span>';
+  if(t.includes('UP'))return'<span class="pill p-ok">\u{1F4C8} Badha</span>';
+  if(t.includes('DROPPING'))return'<span class="pill p-now">\u{1F53B} Bahut Gira</span>';
+  if(t.includes('DOWN'))return'<span class="pill p-soon">\u{1F4C9} Gira</span>';
+  return'<span class="pill p-none">\u27A1 Waisa Hi</span>';
+}
+function drawVelTable(){
+  const body=document.getElementById('velBody');if(!body)return;
+  let rows=(DATA.velocity||[]).filter(x=>velMatchesFilter(x)&&(!velSearch||(x.vyapar_item||'').toLowerCase().includes(velSearch.toLowerCase())));
+  rows=sorted(rows,'v-vel','this_week','desc');
+  const c=document.getElementById('velCount');if(c)c.textContent=rows.length+' products';
+  body.innerHTML=rows.map(x=>`<tr>
+    <td><b>${x.vyapar_item}</b></td>
+    <td>${velLabel(x.trend)}</td>
+    <td class="num">${num(+x.last_week)}</td>
+    <td class="num"><b>${num(+x.this_week)}</b></td>
+    <td class="num ${+x.week_change>0?'pos':+x.week_change<0?'neg':''}">${+x.week_change>0?'+':''}${num(+x.week_change)}</td>
+    <td class="num">${(+x.per_day).toFixed(1)}/din</td>
+    <td class="num">${num(+(x.warehouse_stock||0))}</td>
+    <td class="num ${x.days_left_at_current_speed!=null&&+x.days_left_at_current_speed<45?'neg':''}">${x.days_left_at_current_speed!=null?x.days_left_at_current_speed+' din':'\u2014'}</td>
+  </tr>`).join('');
+}
+
+// Pichli baar ka data cache se turant dikhao, fresh background me aata he
+try{
+  const c=localStorage.getItem('dash_cache');
+  if(c&&_sess()){DATA=JSON.parse(c);rerender();document.getElementById('meta').textContent='cached · fresh data aa raha he…';}
+}catch(e){/* purana/kharab cache - ignore */}
+authStart();
+// Har 10 minute me khud refresh
+setInterval(loadAll,10*60*1000);
+</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});</script>
+</body>
+</html>
