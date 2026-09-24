@@ -165,6 +165,8 @@
   #acctLegend::-webkit-scrollbar{display:none;}
   #acctLegend .lg{cursor:pointer;white-space:nowrap;}
   #acctLegend .lg.off{opacity:.35;}
+  #acctLegend .lg-all{--ac:var(--text2);}
+  #acctFilter{display:none!important;}
   #acctLegend .lgl{font-size:11px;color:var(--text2);white-space:nowrap;margin-right:2px;}
   #acctFilter[data-acct]{color:var(--ac);border-color:var(--ac);font-weight:700;}
   @media(max-width:768px){#acctLegend{padding:4px 10px 8px;}}
@@ -1855,11 +1857,11 @@ function doRow(tr){if(tr.dataset.acDone)return;tr.dataset.acDone=1;var tds=tr.ch
  for(i=0;i<tds.length;i++){var c=tds[i];if(c.classList.contains("num")||c.querySelector(".acct-badge,input,select,button,.pill"))continue;
   var st=c.getAttribute("style")||"";if(c.querySelector("b,a.asin")||/mono/.test(st)||(i===0&&c.textContent.trim().length>2))c.classList.add("acct-name");}}
 function legend(){if(document.getElementById("acctLegend"))return;var nav=document.getElementById("nav");if(!nav)return;var d=document.createElement("div");d.id="acctLegend";
- d.innerHTML='<span class="lgl">Accounts:</span>'+A.map(function(a){return '<span class="acct-badge lg" data-acct="'+a+'" data-v="'+a+'">'+a+'</span>';}).join("");
+ d.innerHTML='<span class="lgl">Accounts:</span><span class="acct-badge lg lg-all" data-v="">All</span>'+A.map(function(a){return '<span class="acct-badge lg" data-acct="'+a+'" data-v="'+a+'">'+a+'</span>';}).join("");
  d.addEventListener("click",function(e){var b=e.target.closest(".lg");if(!b)return;var s=document.getElementById("acctFilter");if(!s)return;var v=b.dataset.v;s.value=(s.value===v?"":v);if(typeof onAcctChange==="function")onAcctChange();sync();});
  nav.appendChild(d);}
 function sync(){var s=document.getElementById("acctFilter");if(!s)return;var v=up(s.value);if(A.indexOf(v)>=0)s.dataset.acct=v;else delete s.dataset.acct;
- document.querySelectorAll("#acctLegend .lg").forEach(function(b){b.classList.toggle("off",!!v&&b.dataset.v!==v);});}
+ document.querySelectorAll("#acctLegend .lg").forEach(function(b){b.classList.toggle("off",b.dataset.v?(!!v&&b.dataset.v!==v):!!v);});}
 function scan(){document.querySelectorAll("main tbody tr:not([data-ac-done])").forEach(doRow);document.querySelectorAll(".notif-body,.notif-title").forEach(function(e){if(!e.dataset.acDone){e.dataset.acDone=1;words(e);}});legend();sync();}
 var q=0;function later(){if(q)return;q=1;setTimeout(function(){q=0;scan();},60);}
 new MutationObserver(later).observe(document.body,{childList:true,subtree:true});
