@@ -106,6 +106,7 @@
   }
 
   #greet{display:none;}
+  html.bg-hidden body>*:not(#lockScreen),html.locked body>*:not(#lockScreen){visibility:hidden!important;}
   .card.acc-closed>*:not(.card-head){display:none!important;}
   main .card>.card-head{cursor:pointer;position:relative;padding-right:40px;}
   main .card>.card-head::after{content:'▴';position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:14px;}
@@ -421,7 +422,24 @@ async function authStart(){
   if(s&&await authRefresh()){document.getElementById('lockScreen').style.display='none';await loadAll();return;}
   authShowLock();
 }
-if(AUTH_MOB){let hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.hidden){hidAt=Date.now();}else if(hidAt&&Date.now()-hidAt>60000&&_sess()){authLogout();}});}
+if(AUTH_MOB){
+  // Background jaate hi screen chhupao (recent-apps preview me bhi data na dikhe);
+  // 60s+ baad lautne par turant (network ka intezar kiye bina) logout.
+  const lk=()=>document.getElementById('lockScreen');
+  const hardLogout=()=>{const s=_sess();try{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(AUTH_KEY);localStorage.removeItem('dash_cache');}catch(e){}
+    authOK=false;document.documentElement.classList.add('locked');if(lk())lk().style.display='flex';
+    try{if(s)fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',keepalive:true,headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}});}catch(e){}
+    setTimeout(()=>location.reload(),30);};
+  const mark=()=>{try{sessionStorage.setItem('dash_last_seen',String(Date.now()));}catch(e){}};
+  const check=()=>{const l=+(sessionStorage.getItem('dash_last_seen')||0);if(_sess()&&l&&Date.now()-l>60000){hardLogout();return true;}return false;};
+  if(check()){} 
+  const hide=()=>{mark();document.documentElement.classList.add('bg-hidden');};
+  const show=()=>{if(!check()){document.documentElement.classList.remove('bg-hidden');mark();}};
+  document.addEventListener('visibilitychange',()=>{document.hidden?hide():show();});
+  addEventListener('pagehide',hide);addEventListener('blur',mark);
+  addEventListener('pageshow',show);addEventListener('focus',show);
+  setInterval(()=>{if(!document.hidden)mark();},5000);mark();
+}
 setInterval(()=>{const s=_sess();if(authOK&&s&&s.expires_at&&Date.now()/1000>s.expires_at-600)authRefresh();},5*60*1000);
 const KEY='sb_publishable_HO0wPEI58Ia5k7CFOIyOhA_A6dtCsuL';window.SK=KEY;
 
