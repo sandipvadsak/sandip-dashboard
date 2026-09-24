@@ -122,6 +122,7 @@
     #navGroups button.active{color:var(--accent)!important;}
     #navGroups button.active .gi{filter:none;opacity:1;}
     #navTabs{border-top:none;padding:8px 10px!important;}
+    #navTabs:has(>button:only-child){display:none!important;}
     /* 2) hero card */
     #v-overview .kpis>.kpi:first-child{grid-column:1/-1;padding:18px 16px;border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,var(--panel)),var(--panel));align-items:flex-start;text-align:left;}
     #v-overview .kpis>.kpi:first-child .label,#v-overview .kpis>.kpi:first-child .value,#v-overview .kpis>.kpi:first-child .sub{text-align:left;}
@@ -182,6 +183,31 @@
     #ptr{position:fixed;top:0;left:50%;transform:translate(-50%,-50px);z-index:400;background:var(--panel2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;transition:transform .15s;}
   }
   @keyframes sheetUp{from{transform:translateY(40%);opacity:.4}to{transform:none;opacity:1}}
+
+  #navGroups button.set-btn,#v-settings{display:none;}
+  @media(max-width:768px){
+    #navGroups button.set-btn{display:flex;}
+    #v-settings.active{display:block;}
+    body:has(#v-settings.active) #acctLegend{display:none!important;}
+    .st-sec{background:var(--panel);border:1px solid var(--border);border-radius:16px;margin:0 0 14px;overflow:hidden;}
+    .st-sec h3{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--text2);padding:12px 14px 6px;margin:0;}
+    .st-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid var(--border);font-size:14px;}
+    .st-row:first-of-type{border-top:none;}
+    .st-row .st-l{display:flex;align-items:center;gap:10px;}
+    .st-row .st-ic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--panel2);font-size:16px;flex-shrink:0;}
+    .st-row small{display:block;color:var(--text2);font-size:11.5px;margin-top:1px;}
+    .st-seg{display:flex;background:var(--panel2);border-radius:10px;padding:3px;gap:2px;}
+    .st-seg button{border:none;background:none;color:var(--text2);padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;}
+    .st-seg button.on{background:var(--panel);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.2);}
+    .st-sw{width:46px;height:28px;border-radius:14px;background:var(--border);position:relative;border:none;flex-shrink:0;}
+    .st-sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s;}
+    .st-sw.on{background:var(--accent);}
+    .st-sw.on::after{left:21px;}
+    .st-btn{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600;}
+    .st-btn.red{color:var(--red);border-color:color-mix(in srgb,var(--red) 40%,var(--border));}
+    .st-sel{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-size:13px;}
+    html.big-text body{zoom:1.1;}
+  }
 
   html[data-theme="light"]{--bg:#f5f7fa;--panel:#ffffff;--panel2:#eef1f5;--border:#d5dbe3;--text:#1a2230;--text2:#5b6675;--accent:#15803d;--red:#dc2626;--amber:#b45309;--blue:#1d4ed8;--pos:#15803d;--neg:#dc2626;--warn:#b45309;color-scheme:light;}
   html[data-theme="light"] header{background:linear-gradient(180deg,#ffffff,#f5f7fa);}
@@ -1990,10 +2016,10 @@ setInterval(loadAll,10*60*1000);
         tds.forEach(function(td,i){if(td.classList.contains('num')&&(td.querySelector('b')||/neg|warn|pos/.test(td.className)))add(i);});
         add(tds.length-1);tds.forEach(function(td,i){add(i);});
         k.forEach(function(i){tds[i].classList.add('kc');});
-        if(tds.length>k.length+1)tr.classList.add('can-open');
+        if(tds.length>k.length+1&&(!window.__setP||__setP('compact',true)))tr.classList.add('can-open');
       });
-      var lim=10;
-      if(rows.length>lim&&!tb.dataset.all){
+      var lim=window.__setP?__setP('listSize',10):10;
+      if(lim&&rows.length>lim&&!tb.dataset.all){
         rows.forEach(function(tr,i){tr.classList.toggle('more-hide',i>=lim);});
         var btn=tb.parentNode.querySelector(':scope>.more-btn');
         if(!btn){btn=document.createElement('button');btn.className='more-btn';tb.after(btn);
@@ -2033,7 +2059,7 @@ setInterval(loadAll,10*60*1000);
   function accordion(){
     document.querySelectorAll('main .view .card').forEach(function(c){
       var hd=c.querySelector(':scope>.card-head');if(!hd||c.dataset.acc)return;c.dataset.acc=1;
-      var k=ckey(c);c.classList.toggle('acc-closed',M.matches&&!OPEN[k]);
+      var k=ckey(c),dflt=window.__setP&&__setP('boxOpen',false);c.classList.toggle('acc-closed',M.matches&&!dflt&&!OPEN[k]);
     });
   }
   window.__openCard=function(c){c.classList.remove('acc-closed');OPEN[ckey(c)]=1;try{localStorage.setItem('dash_open_cards',JSON.stringify(OPEN));}catch(e){}};
@@ -2072,6 +2098,113 @@ setInterval(loadAll,10*60*1000);
   addEventListener('touchstart',function(e){y0=(scrollY<=0&&M.matches)?e.touches[0].clientY:null;},{passive:true});
   addEventListener('touchmove',function(e){if(y0==null)return;var d=e.touches[0].clientY-y0;if(d>0){ptr.style.transform='translate(-50%,'+Math.min(d/2-50,20)+'px)';ptr.textContent=d>120?'↻ Chhodo - refresh':'↓ Refresh ke liye kheencho';}},{passive:true});
   addEventListener('touchend',function(e){if(y0==null)return;var d=(e.changedTouches[0].clientY-y0);ptr.style.transform='translate(-50%,-50px)';y0=null;if(d>120&&typeof loadAll==='function')loadAll();});
+})();
+</script>
+<script>
+(function(){
+  var M=window.matchMedia('(max-width:768px)');
+  function P(k,d){try{var v=localStorage.getItem('set_'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+  function S(k,v){try{localStorage.setItem('set_'+k,JSON.stringify(v));}catch(e){}}
+  window.__setP=P;
+  if(P('bigText',false))document.documentElement.classList.add('big-text');
+  // ---- symbols ----
+  var TAB_IC={overview:'🏠',pnl:'📊',product_pnl:'💹',charges:'🧾',receivable:'💵',disputes:'⚖️',reimb:'💸',reorder:'🔁',china:'🚢',fba:'📤',fba_inbound:'🚚',slow:'🧊',velocity:'⚡',traffic:'👀',returns:'↩️'};
+  function symbols(){
+    if(!M.matches)return;
+    document.querySelectorAll('#navTabs button[data-v]').forEach(function(b){var ic=TAB_IC[b.dataset.v];if(ic&&!b.dataset.ic){b.dataset.ic=1;b.textContent=ic+' '+b.textContent;}});
+    var lo=document.querySelector('.hright button[title="Logout"]');if(lo&&!lo.dataset.ic){lo.dataset.ic=1;lo.innerHTML='⏻ Logout';}
+    document.querySelectorAll('.more-btn').forEach(function(b){if(b.textContent.indexOf('⬇')<0)b.textContent='⬇ '+b.textContent;});
+  }
+  // ---- settings view ----
+  function row(ic,title,sub,ctrl){return '<div class="st-row"><div class="st-l"><span class="st-ic">'+ic+'</span><div>'+title+(sub?'<small>'+sub+'</small>':'')+'</div></div>'+ctrl+'</div>';}
+  function seg(k,opts,cur){return '<div class="st-seg" data-k="'+k+'">'+opts.map(function(o){return '<button data-v="'+o[0]+'" class="'+(String(cur)===String(o[0])?'on':'')+'">'+o[1]+'</button>';}).join('')+'</div>';}
+  function sw(k,on){return '<button class="st-sw'+(on?' on':'')+'" data-sw="'+k+'" aria-label="toggle"></button>';}
+  function render(){
+    var v=document.getElementById('v-settings');if(!v)return;
+    var s=null;try{s=JSON.parse(localStorage.getItem('dash_sb_session')||'null');}catch(e){}
+    var em=(s&&s.user&&s.user.email)||'—';
+    var th=localStorage.getItem('dash_theme')||'light';
+    var accts=[].slice.call(document.querySelectorAll('#acctFilter option')).map(function(o){return [o.value,o.value||'All'];});
+    var tabs=[['overview','🏠 Overview']];(typeof NAV_GROUPS!=='undefined'?NAV_GROUPS:[]).forEach(function(g){g.tabs.forEach(function(t){if(t[0]!=='overview')tabs.push([t[0],(TAB_IC[t[0]]||'')+' '+t[1]]);});});
+    var meta=(document.getElementById('meta')||{}).textContent||'';
+    v.innerHTML=
+      '<div class="st-sec"><h3>👤 Account</h3>'+row('📧','Login',em,'<button class="st-btn red" id="stLogout">⏻ Logout</button>')+'</div>'+
+      '<div class="st-sec"><h3>🎨 Dikhawat</h3>'+
+        row('🌗','Theme','',seg('theme',[['light','☀️ Light'],['dark','🌙 Dark']],th))+
+        row('🔠','Bade akshar','Padhne me aasaan',sw('bigText',P('bigText',false)))+
+      '</div>'+
+      '<div class="st-sec"><h3>🏁 Shuruaat</h3>'+
+        row('📍','App khulte hi','Ye tab pehle khulega','<select class="st-sel" id="stTab">'+tabs.map(function(t){return '<option value="'+t[0]+'"'+(P('startTab','overview')===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select>')+
+        row('🏷️','Default account','','<select class="st-sel" id="stAcct">'+accts.map(function(a){return '<option value="'+a[0]+'"'+(P('startAcct','')===a[0]?' selected':'')+'>'+a[1]+'</option>';}).join('')+'</select>')+
+      '</div>'+
+      '<div class="st-sec"><h3>📋 Lists aur Boxes</h3>'+
+        row('🔢','List me pehle kitne','Baaki "Aur dikhao" me',seg('listSize',[[10,'10'],[25,'25'],[0,'Sab']],P('listSize',10)))+
+        row('🗂️','Box shuru me khule','Band = sirf heading',sw('boxOpen',P('boxOpen',false)))+
+        row('🪪','Chhote cards','Tap karke poori detail',sw('compact',P('compact',true)))+
+      '</div>'+
+      '<div class="st-sec"><h3>🔔 Alerts</h3>'+
+        row('✅','Sab alerts read','Badge saaf ho jayega','<button class="st-btn" id="stRead">Read karo</button>')+
+        row('🔄','Alerts dobara dikhao','Read kiye hue bhi','<button class="st-btn" id="stUnread">Reset</button>')+
+      '</div>'+
+      '<div class="st-sec"><h3>💾 Data</h3>'+
+        row('⏱️','Aakhri update',meta.replace('updated ',''),'<button class="st-btn" id="stRefresh">↻ Abhi</button>')+
+        row('🧹','Cache saaf karo','Purana data hata ke naya laao','<button class="st-btn" id="stClear">Saaf karo</button>')+
+      '</div>'+
+      '<div class="st-sec"><h3>📲 App</h3>'+
+        row('⬇️','Phone me install','Home screen par icon',(window.__bip?'<button class="st-btn" id="stInstall">Install</button>':'<small>Chrome menu → Install app</small>'))+
+        row('🔗','Link copy karo','Jignesh ko bhejne ke liye','<button class="st-btn" id="stCopy">Copy</button>')+
+        row('ℹ️','Ecom24x7 Dashboard','Sirf Sandip aur Jignesh ke liye · data private','')+
+      '</div>';
+  }
+  function openSettings(){
+    document.querySelectorAll('#navGroups button').forEach(function(b){b.classList.toggle('active',b.classList.contains('set-btn'));});
+    var nt=document.getElementById('navTabs');if(nt)nt.innerHTML='<button class="active">⚙️ Settings</button>';
+    document.querySelectorAll('.view').forEach(function(x){x.classList.remove('active');});
+    render();document.getElementById('v-settings').classList.add('active');scrollTo(0,0);
+  }
+  function setup(){
+    var ng=document.getElementById('navGroups'),main=document.querySelector('main');
+    if(main&&!document.getElementById('v-settings')){var v=document.createElement('div');v.className='view';v.id='v-settings';main.appendChild(v);}
+    if(ng&&!ng.querySelector('.set-btn')&&ng.children.length){var b=document.createElement('button');b.className='set-btn';b.innerHTML='<span class="gi">⚙️</span><span>Settings</span>';b.onclick=openSettings;ng.appendChild(b);}
+    symbols();
+  }
+  document.addEventListener('click',function(e){
+    var t=e.target;if(!t.closest||!t.closest('#v-settings'))return;
+    var sg=t.closest('.st-seg button');
+    if(sg){var k=sg.parentNode.dataset.k,val=sg.dataset.v;
+      if(k==='theme'){var cur=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';if(cur!==val&&typeof toggleTheme==='function')toggleTheme();}
+      else S(k,k==='listSize'?+val:val);
+      if(k==='listSize')document.querySelectorAll('table.tcards').forEach(function(tb){delete tb.dataset.all;tb.querySelectorAll('tr').forEach(function(r){r.classList.remove('more-hide');delete r.dataset.cmp;});});
+      render();return;}
+    var s=t.closest('.st-sw');
+    if(s){var k2=s.dataset.sw,nv=!P(k2,k2==='compact');S(k2,nv);
+      if(k2==='bigText')document.documentElement.classList.toggle('big-text',nv);
+      if(k2==='boxOpen'){try{localStorage.removeItem('dash_open_cards');}catch(e){}document.querySelectorAll('.card[data-acc]').forEach(function(c){delete c.dataset.acc;});}
+      if(k2==='compact')document.querySelectorAll('table.tcards tr').forEach(function(r){r.classList.remove('can-open','open');delete r.dataset.cmp;r.querySelectorAll('.kc').forEach(function(x){x.classList.remove('kc');});});
+      render();return;}
+    if(t.id==='stLogout'&&typeof authLogout==='function')authLogout();
+    if(t.id==='stRead'&&typeof markAllRead==='function'){markAllRead();t.textContent='✓ Ho gaya';}
+    if(t.id==='stUnread'){try{localStorage.removeItem('notif_seen');}catch(e){}if(typeof updateNotifications==='function')updateNotifications();t.textContent='✓ Ho gaya';}
+    if(t.id==='stRefresh'&&typeof loadAll==='function'){t.textContent='…';loadAll().then(function(){render();});}
+    if(t.id==='stClear'){try{localStorage.removeItem('dash_cache');}catch(e){}if(window.caches)caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});});t.textContent='✓ Saaf';setTimeout(function(){location.reload();},600);}
+    if(t.id==='stInstall'&&window.__bip){window.__bip.prompt();window.__bip=null;}
+    if(t.id==='stCopy'){var u=location.origin+location.pathname;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){t.textContent='✓ Copied';},function(){prompt('Link:',u);});}
+  });
+  document.addEventListener('change',function(e){
+    if(e.target.id==='stTab')S('startTab',e.target.value);
+    if(e.target.id==='stAcct')S('startAcct',e.target.value);
+  });
+  addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;});
+  // start preferences - pehli baar data aane par ek hi baar
+  var applied=false;
+  function applyStart(){
+    if(applied||!M.matches||typeof DATA==='undefined'||!Object.keys(DATA).length)return;applied=true;
+    var a=P('startAcct','');var f=document.getElementById('acctFilter');
+    if(a&&f&&f.querySelector('option[value="'+a+'"]')){f.value=a;if(typeof onAcctChange==='function')onAcctChange();}
+    var t=P('startTab','overview');if(typeof go==='function'&&document.getElementById('v-'+t))go(t);
+  }
+  var q=0;new MutationObserver(function(){if(q)return;q=1;setTimeout(function(){q=0;setup();applyStart();},90);}).observe(document.body,{childList:true,subtree:true});
+  setup();
 })();
 </script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});</script>
