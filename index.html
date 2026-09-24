@@ -623,7 +623,8 @@ function readNotif(id){
 // Notification pe click = us kaam wale tab pe le jao
 function notifTarget(id){
   if(id.startsWith('fba_'))return'fba_inbound';      // overdue FBA shipments
-  if(id.startsWith('rem_'))return'fba_inbound';      // removal nahi mila
+  if(id.startsWith('rem_'))return'fba_inbound';
+  if(id.startsWith('inbshort_'))return'fba_inbound';  // closed shipment me kam maal      // removal nahi mila
   if(id.startsWith('reorder_'))return'reorder';
   if(id.startsWith('nc_'))return'returns';           // FC missing units
   if(id.startsWith('strand_'))return'returns';       // stranded
@@ -1818,6 +1819,26 @@ try{
 authStart();
 // Har 10 minute me khud refresh
 setInterval(loadAll,10*60*1000);
+</script>
+<script>
+(function(){
+  if(typeof renderFbaInbound!=='function')return;
+  const _orig=renderFbaInbound;
+  renderFbaInbound=function(){
+    _orig.apply(this,arguments);
+    const v=document.getElementById('v-fba_inbound'); if(!v)return;
+    const t0=new Date(new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'}));
+    const acct=(document.getElementById('acctFilter')||{}).value||'';
+    const sh=(DATA.inboundShort||[]).filter(x=>!acct||x.account===acct).map(x=>({...x,left:x.claim_deadline?Math.round((new Date(x.claim_deadline)-t0)/86400000):null})).filter(x=>x.left!==null&&x.left>=0);
+    const old=document.getElementById('shortCard'); if(old)old.remove();
+    const c=document.createElement('div'); c.className='card'; c.id='shortCard'; c.style.border='1px solid var(--red)';
+    c.innerHTML=`<div class="card-head"><h2>🚨 Claim Karo — Closed Shipment me Kam Maal (${sh.length})</h2><span class="hint">Amazon claim window 30 din · din baaki = pickup se safe andaza · Seller Central pe confirm karo</span></div>`+
+      (sh.length?`<div class="table-scroll"><table><thead><tr><th>Shipment ID</th><th>Account</th><th>Item</th><th class="num">Bheja</th><th class="num">Mila</th><th class="num">Kam</th><th class="num">Din Baaki</th></tr></thead><tbody>${
+        sh.sort((a,b)=>a.left-b.left).map(x=>`<tr><td style="font-family:var(--mono);font-size:12px">${x.shipment_id}</td><td>${x.account}</td><td><b>${x.vyapar_item||x.amazon_sku}</b></td><td class="num">${x.qty_shipped}</td><td class="num">${x.qty_received}</td><td class="num neg"><b>−${x.qty_short}</b></td><td class="num ${x.left<=3?'neg':'warn'}"><b>${x.left===0?'AAJ':x.left+' din'}</b></td></tr>`).join('')
+      }</tbody></table></div>`:'<div style="padding:16px 20px;color:var(--accent)">✓ Koi closed shipment me maal kam nahi (claim window ke andar)</div>');
+    v.prepend(c);
+  };
+})();
 </script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});</script>
 <script>(function(){function f(){var h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hdrH",h.offsetHeight+"px");var b=document.getElementById("notifBtn");if(b){var r=b.getBoundingClientRect(),s=document.documentElement.style;s.setProperty("--bellB",r.bottom+"px");s.setProperty("--bellX",(r.left+r.width/2-8)+"px");}}document.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("#notifBtn"))f();},true);addEventListener("resize",f);addEventListener("load",f);setInterval(f,2000);f();})();</script>
