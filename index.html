@@ -340,7 +340,7 @@
     <button id="themeBtn" onclick="toggleTheme()" title="Light / Dark">☀️</button>
     <button id="notifBtn" onclick="toggleNotif()">🔔<span id="notifBadge" style="display:none">0</span></button>
     <button id="refreshBtn" onclick="loadAll()">↻ Refresh</button>
-      <button onclick="authLogout()" title="Logout">⎋ Logout</button>
+      <button onclick="authLogout()" title="Logout">⏻ Logout</button>
   </div>
 </header>
 <div id="notifPanel">
@@ -2111,7 +2111,6 @@ setInterval(loadAll,10*60*1000);
   // ---- symbols ----
   var TAB_IC={overview:'🏠',pnl:'📊',product_pnl:'💹',charges:'🧾',receivable:'💵',disputes:'⚖️',reimb:'💸',reorder:'🔁',china:'🚢',fba:'📤',fba_inbound:'🚚',slow:'🧊',velocity:'⚡',traffic:'👀',returns:'↩️'};
   function symbols(){
-    if(!M.matches)return;
     document.querySelectorAll('#navTabs button[data-v]').forEach(function(b){var ic=TAB_IC[b.dataset.v];if(ic&&!b.dataset.ic){b.dataset.ic=1;b.textContent=ic+' '+b.textContent;}});
     var lo=document.querySelector('.hright button[title="Logout"]');if(lo&&!lo.dataset.ic){lo.dataset.ic=1;lo.innerHTML='⏻ Logout';}
     document.querySelectorAll('.more-btn').forEach(function(b){if(b.textContent.indexOf('⬇')<0)b.textContent='⬇ '+b.textContent;});
