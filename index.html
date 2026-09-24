@@ -111,6 +111,7 @@
   html[data-theme="light"] .kpi .value:not(.pos):not(.neg):not(.warn){color:var(--text);}
   #themeBtn{background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:7px 11px;border-radius:7px;cursor:pointer;font-size:15px;line-height:1;}
   #themeBtn:hover{border-color:var(--accent);}
+  html[data-theme="light"] .notif-title[style*="#f0b429"]{color:#b45309!important;}
   .kpi{text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;}
   .kpi .label,.kpi .value,.kpi .sub{width:100%;text-align:center;}
   #notifPanel{position:fixed;top:calc(var(--bellB,56px) + 8px);max-height:calc(100vh - var(--bellB,56px) - 24px);}
@@ -440,7 +441,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -487,6 +488,17 @@ function buildAlerts(){
   const alerts=[];
   const today=new Date().toISOString().slice(0,10);
   const D=DATA;
+  // FBA shipment closed + maal kam mila -> claim (Amazon window 30 din, 23 Sep 2026 se)
+  (function(){
+    const t0=new Date(new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'}));
+    const sh=(D.inboundShort||[]).map(x=>({...x,left:x.claim_deadline?Math.round((new Date(x.claim_deadline)-t0)/86400000):99})).filter(x=>x.left>=0);
+    if(!sh.length)return;
+    const ids=new Set(sh.map(x=>x.shipment_id)), units=sh.reduce((s,x)=>s+ +x.qty_short,0), minLeft=Math.min(...sh.map(x=>x.left));
+    alerts.push({id:'inbshort_'+[...ids].sort().join('_')+'_'+units,level:'critical',
+      title:`🚨 ${ids.size} closed shipment me ${units} units kam mile — claim karo (${minLeft} din baaki)`,
+      body:sh.slice(0,6).map(x=>`${x.account} · ${x.shipment_id} · ${x.vyapar_item||x.amazon_sku} · ${x.qty_received}/${x.qty_shipped} mila (−${x.qty_short}) · ${x.left} din`).join('\n')+(sh.length>6?`\n+${sh.length-6} aur`:'')+'\nAmazon claim window ab sirf 30 din (shipment close se)'});
+  })();
+
   
   // Overdue FBA shipments
   const overdue=(D.fbaOverdue||[]).filter(x=>x.alert_level==='CRITICAL');
@@ -1811,13 +1823,13 @@ setInterval(loadAll,10*60*1000);
 <script>(function(){function f(){var h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hdrH",h.offsetHeight+"px");var b=document.getElementById("notifBtn");if(b){var r=b.getBoundingClientRect(),s=document.documentElement.style;s.setProperty("--bellB",r.bottom+"px");s.setProperty("--bellX",(r.left+r.width/2-8)+"px");}}document.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("#notifBtn"))f();},true);addEventListener("resize",f);addEventListener("load",f);setInterval(f,2000);f();})();</script>
 <script>function toggleTheme(){var d=document.documentElement,l=d.getAttribute("data-theme")!=="light";if(l)d.setAttribute("data-theme","light");else d.removeAttribute("data-theme");try{localStorage.setItem("dash_theme",l?"light":"dark");}catch(e){}var b=document.getElementById("themeBtn");if(b)b.textContent=l?"🌙":"☀️";var m=document.querySelector("meta[name=theme-color]");if(m)m.content=l?"#ffffff":"#0b0f17";}(function(){var l=document.documentElement.getAttribute("data-theme")==="light";var b=document.getElementById("themeBtn");if(b)b.textContent=l?"🌙":"☀️";var m=document.querySelector("meta[name=theme-color]");if(m&&l)m.content="#ffffff";})();</script>
 <script>(function(){var A=["AVEDIA", "BRAINLE", "MULZI", "ZOTIMO", "ACMUST", "ARKZO", "PIVDO", "KIDOCA", "WISKA"];
-var RX=new RegExp("\\b("+A.join("|")+")\\b","gi");
+var RX=new RegExp("\\b("+A.join("|")+")\\b","gi"),RT=new RegExp("\\b("+A.join("|")+")\\b","i");
 function up(s){return (s||"").trim().toUpperCase();}
-function words(el){var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),ns=[],n;while(n=w.nextNode())if(RX.test(n.nodeValue)&&!n.parentNode.closest(".acct-word,.acct-badge,input,select,option,script"))ns.push(n);RX.lastIndex=0;
+function words(el){var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),ns=[],n;while(n=w.nextNode())if(RT.test(n.nodeValue)&&!n.parentNode.closest(".acct-word,.acct-badge,input,select,option,script"))ns.push(n);RX.lastIndex=0;
  ns.forEach(function(t){var f=document.createDocumentFragment(),s=t.nodeValue,last=0;s.replace(RX,function(m,g,i){f.appendChild(document.createTextNode(s.slice(last,i)));var sp=document.createElement("span");sp.className="acct-word";sp.dataset.acct=g.toUpperCase();sp.textContent=m;f.appendChild(sp);last=i+m.length;});f.appendChild(document.createTextNode(s.slice(last)));t.parentNode.replaceChild(f,t);});}
 function doRow(tr){if(tr.dataset.acDone)return;tr.dataset.acDone=1;var tds=tr.children,acc=null,i;
  for(i=0;i<tds.length;i++){var c=tds[i];if(c.querySelector("input,select,button"))continue;var t=up(c.textContent);if(A.indexOf(t)>=0){acc=t;c.innerHTML='<span class="acct-badge" data-acct="'+t+'">'+t+'</span>';break;}}
- if(!acc){for(i=0;i<tds.length;i++)if(RX.test(tds[i].textContent)){RX.lastIndex=0;words(tds[i]);}RX.lastIndex=0;return;}
+ if(!acc){for(i=0;i<tds.length;i++)if(RT.test(tds[i].textContent))words(tds[i]);return;}
  tr.dataset.acct=acc;
  for(i=0;i<tds.length;i++){var c=tds[i];if(c.classList.contains("num")||c.querySelector(".acct-badge,input,select,button,.pill"))continue;
   var st=c.getAttribute("style")||"";if(c.querySelector("b,a.asin")||/mono/.test(st)||(i===0&&c.textContent.trim().length>2))c.classList.add("acct-name");}}
