@@ -106,6 +106,8 @@
   }
 
   #greet{display:none;}
+  .spark>div.sel,.hero-spark>i.sel{opacity:1!important;outline:2px solid var(--text);}
+  .spark>div,.hero-spark>i{cursor:pointer;}
   @keyframes shimmer{0%{background-position:-300px 0}100%{background-position:300px 0}}
   @media(max-width:768px){
     body{padding-bottom:calc(70px + env(safe-area-inset-bottom));}
@@ -1943,7 +1945,7 @@ setInterval(loadAll,10*60*1000);
     var k=document.querySelector('#v-overview .kpis>.kpi:first-child');if(!k||k.querySelector('.hero-spark'))return;
     var sp=document.querySelector('#v-overview .spark');if(!sp)return;
     var d=document.createElement('div');d.className='hero-spark';
-    [].slice.call(sp.children,-30).forEach(function(b){var i=document.createElement('i');i.style.height=b.style.height;d.appendChild(i);});
+    [].slice.call(sp.children,-30).forEach(function(b){var i=document.createElement('i');i.style.height=b.style.height;i.dataset.t=b.getAttribute('title')||'';d.appendChild(i);});
     k.appendChild(d);
   }
   function sheet(){
@@ -1953,6 +1955,18 @@ setInterval(loadAll,10*60*1000);
   function all(){greet();tabIcons();cards();hero();sheet();}
   var q=0;new MutationObserver(function(){if(q)return;q=1;setTimeout(function(){q=0;all();},80);}).observe(document.body,{childList:true,subtree:true});
   M.addEventListener?M.addEventListener('change',all):0;all();
+  // Sales trend bar pe tap = us din ki sale (phone pe hover/title nahi chalta)
+  var tip=document.createElement('div');tip.id='sparkTip';
+  tip.style.cssText='position:fixed;z-index:500;display:none;background:var(--text);color:var(--bg);padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;pointer-events:none;white-space:nowrap;transform:translate(-50%,-110%)';
+  document.body.appendChild(tip);var tipT=0;
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('.spark>div,.hero-spark>i');
+    document.querySelectorAll('.spark>div.sel,.hero-spark>i.sel').forEach(function(x){x.classList.remove('sel');});
+    if(!b){tip.style.display='none';return;}
+    var t=b.getAttribute('title')||b.dataset.t;if(!t)return;
+    var r=b.getBoundingClientRect(),mm=t.match(/^(\d{4}-\d{2}-\d{2}):\s*(.*)$/);if(mm){var dt=new Date(mm[1]+'T00:00:00');t=dt.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+'  ·  '+mm[2];}tip.textContent=t;tip.style.left=Math.min(Math.max(r.left+r.width/2,70),innerWidth-70)+'px';tip.style.top=r.top+'px';tip.style.display='block';
+    b.classList.add('sel');clearTimeout(tipT);tipT=setTimeout(function(){tip.style.display='none';b.classList.remove('sel');},3500);
+  });
   // pull to refresh
   var y0=null,ptr=document.createElement('div');ptr.id='ptr';ptr.textContent='↓ Refresh ke liye kheencho';document.body.appendChild(ptr);
   addEventListener('touchstart',function(e){y0=(scrollY<=0&&M.matches)?e.touches[0].clientY:null;},{passive:true});
