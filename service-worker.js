@@ -1,5 +1,5 @@
 // Sirf app ka dhaancha cache hota he - Supabase ka DATA kabhi cache nahi (privacy + taaza data).
-const CACHE='sandip-dash-8f63e8a444';
+const CACHE='sandip-dash-6f9c1de8ff';
 const SHELL=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
