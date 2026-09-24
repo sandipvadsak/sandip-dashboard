@@ -158,8 +158,18 @@
     .sec-chips button{white-space:nowrap;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;}
     #toTop{position:fixed;right:14px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:140;width:42px;height:42px;border-radius:50%;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:18px;display:none;box-shadow:0 4px 14px rgba(0,0,0,.25);}
     #toTop.show{display:block;}
-    /* 4) alerts bottom sheet */
-    #notifPanel{top:auto!important;bottom:0!important;left:0!important;right:0!important;max-height:78vh!important;border-radius:20px 20px 0 0!important;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -10px 40px rgba(0,0,0,.35);animation:sheetUp .22s ease-out;z-index:300!important;}
+    .card.acc-closed>*:not(.card-head){display:none!important;}
+    .card>.card-head{cursor:pointer;position:relative;padding-right:34px!important;}
+    .card>.card-head::after{content:'▴';position:absolute;right:14px;top:14px;color:var(--text2);font-size:13px;}
+    .card.acc-closed>.card-head::after{content:'▾';}
+    .card.acc-closed>.card-head{border-bottom:none!important;}
+    .card.acc-closed:has(.tcards)>.card-head{margin-bottom:0;}
+    .card div[style*="min-width"]{min-width:0!important;}
+    .card svg{max-width:100%;height:auto;}
+    .card div[style*="width:130px"]{width:96px!important;flex-shrink:0;}
+    .card div[style*="gap:32px"]{gap:14px!important;padding:12px!important;}
+    .card-head>div[style*="display:flex"]{flex-wrap:wrap;}
+    /* 4) alerts bottom sheet */    #notifPanel{top:auto!important;bottom:0!important;left:0!important;right:0!important;max-height:78vh!important;border-radius:20px 20px 0 0!important;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -10px 40px rgba(0,0,0,.35);animation:sheetUp .22s ease-out;z-index:300!important;}
     #notifPanel #notifList{max-height:calc(78vh - 60px)!important;}
     #notifPanel::before{top:8px!important;left:50%!important;width:40px!important;height:4px!important;border:none!important;border-radius:2px;background:var(--border)!important;transform:translateX(-50%)!important;}
     #notifPanel .notif-header{padding-top:20px;}
@@ -2012,12 +2022,37 @@ setInterval(loadAll,10*60*1000);
     heads.forEach(function(h,i){var c=document.createElement('button');
       var parts=nm(h).split(/\s+[—-]\s+/),lb=parts[0];if(bases.filter(function(b){return b===lb;}).length>1&&parts[1])lb=parts[1];
       c.textContent=lb.slice(0,24);
-      c.onclick=function(){var y=h.closest('.card').getBoundingClientRect().top+scrollY-(document.querySelector('nav').offsetHeight+8);scrollTo({top:y,behavior:'smooth'});};bar.appendChild(c);});
+      c.onclick=function(){__openCard(h.closest('.card'));var y=h.closest('.card').getBoundingClientRect().top+scrollY-(document.querySelector('nav').offsetHeight+8);scrollTo({top:y,behavior:'smooth'});};bar.appendChild(c);});
     v.prepend(bar);
   }
   var up=document.createElement('button');up.id='toTop';up.textContent='⬆';up.onclick=function(){scrollTo({top:0,behavior:'smooth'});};document.body.appendChild(up);
   addEventListener('scroll',function(){up.classList.toggle('show',M.matches&&scrollY>700);},{passive:true});
-  function all(){greet();tabIcons();cards();compact();hero();sheet();sections();}
+  // Har box dropdown (24 Sep): header tap = khol/band. Default band; jo khola wo yaad rehta he.
+  var OPEN={};try{OPEN=JSON.parse(localStorage.getItem('dash_open_cards')||'{}');}catch(e){}
+  function ckey(card){var h=card.querySelector(':scope>.card-head h2');return h?h.textContent.replace(/\s*[—-].*$/,'').replace(/\(.*?\)/g,'').trim():'';}
+  function accordion(){
+    document.querySelectorAll('main .view .card').forEach(function(c){
+      var hd=c.querySelector(':scope>.card-head');if(!hd||c.dataset.acc)return;c.dataset.acc=1;
+      var k=ckey(c);c.classList.toggle('acc-closed',M.matches&&!OPEN[k]);
+    });
+  }
+  window.__openCard=function(c){c.classList.remove('acc-closed');OPEN[ckey(c)]=1;try{localStorage.setItem('dash_open_cards',JSON.stringify(OPEN));}catch(e){}};
+  document.addEventListener('click',function(e){
+    if(!M.matches||!e.target.closest)return;
+    var hd=e.target.closest('main .card>.card-head');if(!hd||e.target.closest('button,input,select,a'))return;
+    var c=hd.parentNode,k=ckey(c),closed=c.classList.toggle('acc-closed');
+    if(closed)delete OPEN[k];else OPEN[k]=1;try{localStorage.setItem('dash_open_cards',JSON.stringify(OPEN));}catch(e){}
+  });
+  // Fixed-width cheezein (India state map 522px) ko phone ki chaudai me fit karo
+  function fitWide(){
+    document.querySelectorAll('main .card div[style*="position:relative"][style*="width:"]').forEach(function(d){
+      var w=parseFloat(d.style.width);if(!w)return;
+      if(!M.matches){d.style.zoom='';return;}
+      var avail=(d.closest('.card').clientWidth||innerWidth)-24;d.style.zoom=w>avail?(avail/w).toFixed(3):'';
+    });
+  }
+  addEventListener('resize',fitWide);
+  function all(){greet();tabIcons();cards();compact();hero();sheet();accordion();sections();fitWide();}
   var q=0;new MutationObserver(function(){if(q)return;q=1;setTimeout(function(){q=0;all();},80);}).observe(document.body,{childList:true,subtree:true});
   M.addEventListener?M.addEventListener('change',all):0;all();
   // Sales trend bar pe tap = us din ki sale (phone pe hover/title nahi chalta)
