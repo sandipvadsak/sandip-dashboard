@@ -443,7 +443,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -1823,6 +1823,19 @@ authStart();
 setInterval(loadAll,10*60*1000);
 </script>
 <script>
+// Jo shipments user ne chhod di (pickup cancel, maal nayi shipment me gaya) - fba_inbound_ignore table.
+// Amazon me cancel hone tak wo IN_TRANSIT dikhti hain; dashboard ki lists/alerts se hatao.
+(function(){
+  if(typeof rerender!=='function')return;
+  const _rr=rerender;
+  rerender=function(){
+    try{
+      const ig=new Set((DATA.inboundIgnore||[]).map(x=>x.shipment_id));
+      if(ig.size)Object.keys(DATA).forEach(k=>{if(k==='inboundIgnore')return;const a=DATA[k];if(Array.isArray(a)&&a.length&&a[0]&&'shipment_id' in a[0])DATA[k]=a.filter(x=>!ig.has(x.shipment_id));});
+    }catch(e){}
+    return _rr.apply(this,arguments);
+  };
+})();
 (function(){
   if(typeof renderFbaInbound!=='function')return;
   const _orig=renderFbaInbound;
