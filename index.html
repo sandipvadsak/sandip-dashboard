@@ -431,12 +431,13 @@ if(AUTH_MOB){
     try{if(s)fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',keepalive:true,headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}});}catch(e){}
     setTimeout(()=>location.reload(),30);};
   const mark=()=>{try{sessionStorage.setItem('dash_last_seen',String(Date.now()));}catch(e){}};
-  const check=()=>{const l=+(sessionStorage.getItem('dash_last_seen')||0);if(_sess()&&l&&Date.now()-l>60000){hardLogout();return true;}return false;};
+  const lim=()=>{try{const v=localStorage.getItem('set_lockAfter');return v==null?0:+JSON.parse(v);}catch(e){return 0;}};
+  const check=()=>{const l=+(sessionStorage.getItem('dash_last_seen')||0);if(_sess()&&l&&Date.now()-l>lim()*1000+1500){hardLogout();return true;}return false;};
   if(check()){} 
   const hide=()=>{mark();document.documentElement.classList.add('bg-hidden');};
   const show=()=>{if(!check()){document.documentElement.classList.remove('bg-hidden');mark();}};
   document.addEventListener('visibilitychange',()=>{document.hidden?hide():show();});
-  addEventListener('pagehide',hide);addEventListener('blur',mark);
+  addEventListener('pagehide',hide);addEventListener('blur',()=>{const a=document.activeElement;if(a&&/^(SELECT|INPUT|TEXTAREA)$/.test(a.tagName))return;hide();});addEventListener('freeze',hide);
   addEventListener('pageshow',show);addEventListener('focus',show);
   setInterval(()=>{if(!document.hidden)mark();},5000);mark();
 }
@@ -2164,6 +2165,9 @@ setInterval(loadAll,10*60*1000);
         row('🌗','Theme','',seg('theme',[['light','☀️ Light'],['dark','🌙 Dark']],th))+
         row('🔠','Bade akshar','Padhne me aasaan',sw('bigText',P('bigText',false)))+
       '</div>'+
+      '<div class="st-sec"><h3>🔒 Suraksha</h3>'+
+        row('⏳','App se bahar jaane par logout','Itni der baad dobara login',seg('lockAfter',[[0,'Turant'],[60,'1 min'],[300,'5 min']],P('lockAfter',0)))+
+      '</div>'+
       '<div class="st-sec"><h3>🏁 Shuruaat</h3>'+
         row('📍','App khulte hi','Ye tab pehle khulega','<select class="st-sel" id="stTab">'+tabs.map(function(t){return '<option value="'+t[0]+'"'+(P('startTab','overview')===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select>')+
         row('🏷️','Default account','','<select class="st-sel" id="stAcct">'+accts.map(function(a){return '<option value="'+a[0]+'"'+(P('startAcct','')===a[0]?' selected':'')+'>'+a[1]+'</option>';}).join('')+'</select>')+
@@ -2204,7 +2208,7 @@ setInterval(loadAll,10*60*1000);
     var sg=t.closest('.st-seg button');
     if(sg){var k=sg.parentNode.dataset.k,val=sg.dataset.v;
       if(k==='theme'){var cur=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';if(cur!==val&&typeof toggleTheme==='function')toggleTheme();}
-      else S(k,k==='listSize'?+val:val);
+      else S(k,(k==='listSize'||k==='lockAfter')?+val:val);
       if(k==='listSize')document.querySelectorAll('table.tcards').forEach(function(tb){delete tb.dataset.all;tb.querySelectorAll('tr').forEach(function(r){r.classList.remove('more-hide');delete r.dataset.cmp;});});
       render();return;}
     var s=t.closest('.st-sw');
