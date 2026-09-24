@@ -119,9 +119,9 @@
   :root{--ac-ZOTIMO:#fb923c;} html[data-theme="light"]{--ac-ZOTIMO:#c2410c;}
   :root{--ac-ACMUST:#f87171;} html[data-theme="light"]{--ac-ACMUST:#b91c1c;}
   :root{--ac-ARKZO:#22d3ee;} html[data-theme="light"]{--ac-ARKZO:#0e7490;}
-  :root{--ac-PIVDO:#facc15;} html[data-theme="light"]{--ac-PIVDO:#a16207;}
-  :root{--ac-KIDOCA:#f472b6;} html[data-theme="light"]{--ac-KIDOCA:#be185d;}
-  :root{--ac-WISKA:#d6a06b;} html[data-theme="light"]{--ac-WISKA:#8b5a2b;}
+  :root{--ac-PIVDO:#facc15;} html[data-theme="light"]{--ac-PIVDO:#ca8a04;}
+  :root{--ac-KIDOCA:#94a3b8;} html[data-theme="light"]{--ac-KIDOCA:#475569;}
+  :root{--ac-WISKA:#b07a4a;} html[data-theme="light"]{--ac-WISKA:#7c4a1e;}
   [data-acct="AVEDIA"]{--ac:var(--ac-AVEDIA);}
   [data-acct="BRAINLE"]{--ac:var(--ac-BRAINLE);}
   [data-acct="MULZI"]{--ac:var(--ac-MULZI);}
@@ -132,7 +132,9 @@
   [data-acct="KIDOCA"]{--ac:var(--ac-KIDOCA);}
   [data-acct="WISKA"]{--ac:var(--ac-WISKA);}
 
-  .acct-badge{display:inline-block;font-weight:700;color:var(--ac);background:color-mix(in srgb,var(--ac) 15%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);padding:2px 9px;border-radius:20px;font-size:11.5px;letter-spacing:.3px;line-height:1.4;}
+  .acct-badge{display:inline-block;font-weight:700;color:#0d1117;background:var(--ac);border:1px solid var(--ac);padding:2px 9px;border-radius:20px;font-size:11.5px;letter-spacing:.3px;line-height:1.4;}
+  html[data-theme="light"] .acct-badge{color:#fff;}
+  html[data-theme="light"] .acct-badge[data-acct="PIVDO"]{color:#1a1a1a;}
   .acct-word{font-weight:700;color:var(--ac);}
   tr[data-acct]>td:first-child{box-shadow:inset 3px 0 0 var(--ac);}
   tr[data-acct] td.acct-name,tr[data-acct] td.acct-name *{color:var(--ac)!important;font-weight:700;}
@@ -145,7 +147,7 @@
   @media(max-width:768px){#acctLegend{padding:4px 10px 8px;}}
 
   @media(max-width:768px){
-    html,body{-webkit-text-size-adjust:100%;overflow-x:hidden;}
+    html,body{-webkit-text-size-adjust:100%;overflow-x:clip;}
     body{font-size:13px;padding-bottom:env(safe-area-inset-bottom);}
     header{position:relative;top:0;padding:10px 12px calc(10px) 12px;padding-top:calc(10px + env(safe-area-inset-top));flex-direction:column;align-items:stretch;gap:8px;}
     header h1{font-size:15px;text-align:center;}
