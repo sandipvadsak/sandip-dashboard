@@ -498,7 +498,7 @@ function buildAlerts(){
     const ids=new Set(sh.map(x=>x.shipment_id)), units=sh.reduce((s,x)=>s+ +x.qty_short,0), minLeft=Math.min(...sh.map(x=>x.left));
     alerts.push({id:'inbshort_'+[...ids].sort().join('_')+'_'+units,level:'critical',
       title:`🚨 ${ids.size} closed shipment me ${units} units kam mile — claim karo (${minLeft?minLeft+" din baaki":"AAJ aakhri din"})`,
-      body:sh.slice(0,6).map(x=>`${x.account} · ${x.shipment_id} · ${x.vyapar_item||x.amazon_sku} · ${x.qty_received}/${x.qty_shipped} mila (−${x.qty_short}) · ${x.left} din`).join('\n')+(sh.length>6?`\n+${sh.length-6} aur`:'')+'\nDin baaki = pickup (IN_TRANSIT) ke din se 30 din - safe andaza, Seller Central pe ek baar check karo'});
+      body:sh.slice(0,6).map(x=>`<span class="shl" data-sid="${x.shipment_id}" style="cursor:pointer;text-decoration:underline dotted">${x.account} · ${x.shipment_id} · ${x.vyapar_item||x.amazon_sku} · ${x.qty_received}/${x.qty_shipped} mila (−${x.qty_short}) · ${x.left} din</span>`).join('\n')+(sh.length>6?`\n+${sh.length-6} aur`:'')+'\nDin baaki = pickup (IN_TRANSIT) ke din se 30 din - safe andaza, Seller Central pe ek baar check karo'});
   })();
 
   
@@ -1831,15 +1831,18 @@ setInterval(loadAll,10*60*1000);
     const v=document.getElementById('v-fba_inbound'); if(!v)return;
     const t0=new Date(new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'}));
     const acct=(document.getElementById('acctFilter')||{}).value||'';
-    const sh=(DATA.inboundShort||[]).filter(x=>!acct||x.account===acct).map(x=>({...x,left:x.claim_deadline?Math.round((new Date(x.claim_deadline)-t0)/86400000):null})).filter(x=>x.left!==null&&x.left>=0);
+    const foc=window.__shortFocus||'';
+    const sh=(DATA.inboundShort||[]).filter(x=>(!acct||x.account===acct)&&(!foc||x.shipment_id===foc)).map(x=>({...x,left:x.claim_deadline?Math.round((new Date(x.claim_deadline)-t0)/86400000):null})).filter(x=>x.left!==null&&x.left>=0);
     const old=document.getElementById('shortCard'); if(old)old.remove();
     const c=document.createElement('div'); c.className='card'; c.id='shortCard'; c.style.border='1px solid var(--red)';
-    c.innerHTML=`<div class="card-head"><h2>🚨 Claim Karo — Closed Shipment me Kam Maal (${sh.length})</h2><span class="hint">Amazon claim window 30 din · din baaki = pickup se safe andaza · Seller Central pe confirm karo</span></div>`+
+    c.innerHTML=`<div class="card-head"><h2>🚨 Claim Karo — Closed Shipment me Kam Maal (${sh.length})</h2>${foc?`<button onclick="window.__shortFocus=null;renderFbaInbound()" style="margin-left:10px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:4px 10px;cursor:pointer">Sab dikhao</button>`:""}<span class="hint">Amazon claim window 30 din · din baaki = pickup se safe andaza · Seller Central pe confirm karo</span></div>`+
       (sh.length?`<div class="table-scroll"><table><thead><tr><th>Shipment ID</th><th>Account</th><th>Item</th><th class="num">Bheja</th><th class="num">Mila</th><th class="num">Kam</th><th class="num">Din Baaki</th></tr></thead><tbody>${
         sh.sort((a,b)=>a.left-b.left).map(x=>`<tr><td style="font-family:var(--mono);font-size:12px">${x.shipment_id}</td><td>${x.account}</td><td><b>${x.vyapar_item||x.amazon_sku}</b></td><td class="num">${x.qty_shipped}</td><td class="num">${x.qty_received}</td><td class="num neg"><b>−${x.qty_short}</b></td><td class="num ${x.left<=3?'neg':'warn'}"><b>${x.left===0?'AAJ':x.left+' din'}</b></td></tr>`).join('')
       }</tbody></table></div>`:'<div style="padding:16px 20px;color:var(--accent)">✓ Koi closed shipment me maal kam nahi (claim window ke andar)</div>');
     v.prepend(c);
+    if(foc)setTimeout(()=>c.scrollIntoView({block:'start'}),50);
   };
+  document.addEventListener('click',function(e){if(!e.target.closest)return;const l=e.target.closest('.shl');if(l){window.__shortFocus=l.dataset.sid;setTimeout(()=>renderFbaInbound(),0);}else if(e.target.closest('.notif-item')){window.__shortFocus=null;setTimeout(()=>renderFbaInbound(),0);}},true);
 })();
 </script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});</script>
