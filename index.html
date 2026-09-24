@@ -106,6 +106,7 @@
   }
 
   #greet{display:none;}
+  #toTop{display:none;}
   .spark>div.sel,.hero-spark>i.sel{opacity:1!important;outline:2px solid var(--text);}
   .spark>div,.hero-spark>i{cursor:pointer;}
   @keyframes shimmer{0%{background-position:-300px 0}100%{background-position:300px 0}}
@@ -143,6 +144,20 @@
     .tcards td:empty{display:none;}
     .card:has(.tcards){background:none;border:none;}
     .card:has(.tcards)>.card-head{border-radius:14px;margin-bottom:10px;border:1px solid var(--border);}
+    .tcards tr.can-open:not(.open) td:not(:first-child):not(.kc){display:none!important;}
+    .tcards tr.can-open:not(.open){display:flex!important;flex-wrap:wrap;gap:6px;align-items:center;}
+    .tcards tr.can-open:not(.open) td:first-child{flex-basis:100%;border-bottom:none!important;margin-bottom:0;padding-bottom:2px!important;}
+    .tcards tr.can-open:not(.open) td.kc{width:auto!important;display:inline-flex!important;gap:5px;background:var(--panel);border:1px solid var(--border)!important;border-radius:20px;padding:3px 9px!important;font-size:12px;}
+    .tcards tr.can-open:not(.open) td.kc::before{font-size:9.5px;}
+    .tcards tr.can-open td:first-child::after{content:'▾';margin-left:auto;color:var(--text2);font-size:12px;padding-left:8px;}
+    .tcards tr.can-open.open td:first-child::after{content:'▴';}
+    .tcards tr.more-hide{display:none!important;}
+    .more-btn{display:block;width:100%;margin:2px 0 14px;padding:11px;border-radius:12px;border:1px dashed var(--border);background:var(--panel2);color:var(--accent);font-weight:600;font-size:13px;}
+    .sec-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 12px;padding-bottom:2px;}
+    .sec-chips::-webkit-scrollbar{display:none;}
+    .sec-chips button{white-space:nowrap;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;}
+    #toTop{position:fixed;right:14px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:140;width:42px;height:42px;border-radius:50%;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:18px;display:none;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+    #toTop.show{display:block;}
     /* 4) alerts bottom sheet */
     #notifPanel{top:auto!important;bottom:0!important;left:0!important;right:0!important;max-height:78vh!important;border-radius:20px 20px 0 0!important;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -10px 40px rgba(0,0,0,.35);animation:sheetUp .22s ease-out;z-index:300!important;}
     #notifPanel #notifList{max-height:calc(78vh - 60px)!important;}
@@ -1952,7 +1967,57 @@ setInterval(loadAll,10*60*1000);
     if(document.getElementById('sheetBg'))return;var p=document.getElementById('notifPanel');if(!p)return;
     var bg=document.createElement('div');bg.id='sheetBg';bg.onclick=function(){p.classList.remove('open');};p.after(bg);
   }
-  function all(){greet();tabIcons();cards();hero();sheet();}
+  // Kam scroll (24 Sep): chhote card (tap = poori detail) + top 10 + section chips + upar button
+  function compact(){
+    if(!M.matches)return;
+    document.querySelectorAll('table.tcards').forEach(function(tb){
+      var rows=[].slice.call(tb.querySelectorAll(':scope>tbody>tr'));
+      rows.forEach(function(tr){
+        if(tr.dataset.cmp)return;tr.dataset.cmp=1;
+        var tds=[].slice.call(tr.children),k=[];
+        function add(i){if(i>0&&k.indexOf(i)<0&&k.length<3&&tds[i]&&tds[i].textContent.trim()&&tds[i].textContent.trim()!=='—')k.push(i);}
+        tds.forEach(function(td,i){if(td.querySelector('.acct-badge,.pill'))add(i);});
+        tds.forEach(function(td,i){if(td.classList.contains('num')&&(td.querySelector('b')||/neg|warn|pos/.test(td.className)))add(i);});
+        add(tds.length-1);tds.forEach(function(td,i){add(i);});
+        k.forEach(function(i){tds[i].classList.add('kc');});
+        if(tds.length>k.length+1)tr.classList.add('can-open');
+      });
+      var lim=10;
+      if(rows.length>lim&&!tb.dataset.all){
+        rows.forEach(function(tr,i){tr.classList.toggle('more-hide',i>=lim);});
+        var btn=tb.parentNode.querySelector(':scope>.more-btn');
+        if(!btn){btn=document.createElement('button');btn.className='more-btn';tb.after(btn);
+          btn.onclick=function(){tb.dataset.all=1;tb.querySelectorAll('tr.more-hide').forEach(function(r){r.classList.remove('more-hide');});btn.remove();};}
+        btn.textContent='Aur dikhao (+'+(rows.length-lim)+')';
+      }
+    });
+  }
+  document.addEventListener('click',function(e){
+    if(!M.matches||!e.target.closest)return;
+    var tr=e.target.closest('table.tcards tr.can-open');
+    if(!tr||e.target.closest('input,select,button,a,textarea,.shl'))return;
+    tr.classList.toggle('open');
+  });
+  function sections(){
+    if(!M.matches)return;
+    var v=document.querySelector('.view.active');if(!v)return;
+    var heads=[].slice.call(v.querySelectorAll(':scope .card>.card-head h2'));
+    var bar=v.querySelector(':scope>.sec-chips');
+    if(heads.length<2){if(bar)bar.remove();return;}
+    var sig=heads.map(function(h){return h.textContent;}).join('|');
+    if(bar&&bar.dataset.sig===sig)return;if(bar)bar.remove();
+    bar=document.createElement('div');bar.className='sec-chips';bar.dataset.sig=sig;
+    function nm(h){return h.textContent.replace(/^[^\w₹]+/,'').replace(/\(.*?\)/g,'').trim();}
+    var bases=heads.map(function(h){return nm(h).split(/\s+[—-]\s+/)[0];});
+    heads.forEach(function(h,i){var c=document.createElement('button');
+      var parts=nm(h).split(/\s+[—-]\s+/),lb=parts[0];if(bases.filter(function(b){return b===lb;}).length>1&&parts[1])lb=parts[1];
+      c.textContent=lb.slice(0,24);
+      c.onclick=function(){var y=h.closest('.card').getBoundingClientRect().top+scrollY-(document.querySelector('nav').offsetHeight+8);scrollTo({top:y,behavior:'smooth'});};bar.appendChild(c);});
+    v.prepend(bar);
+  }
+  var up=document.createElement('button');up.id='toTop';up.textContent='⬆';up.onclick=function(){scrollTo({top:0,behavior:'smooth'});};document.body.appendChild(up);
+  addEventListener('scroll',function(){up.classList.toggle('show',M.matches&&scrollY>700);},{passive:true});
+  function all(){greet();tabIcons();cards();compact();hero();sheet();sections();}
   var q=0;new MutationObserver(function(){if(q)return;q=1;setTimeout(function(){q=0;all();},80);}).observe(document.body,{childList:true,subtree:true});
   M.addEventListener?M.addEventListener('change',all):0;all();
   // Sales trend bar pe tap = us din ki sale (phone pe hover/title nahi chalta)
