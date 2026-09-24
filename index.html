@@ -496,7 +496,7 @@ function buildAlerts(){
     const ids=new Set(sh.map(x=>x.shipment_id)), units=sh.reduce((s,x)=>s+ +x.qty_short,0), minLeft=Math.min(...sh.map(x=>x.left));
     alerts.push({id:'inbshort_'+[...ids].sort().join('_')+'_'+units,level:'critical',
       title:`🚨 ${ids.size} closed shipment me ${units} units kam mile — claim karo (${minLeft?minLeft+" din baaki":"AAJ aakhri din"})`,
-      body:sh.slice(0,6).map(x=>`${x.account} · ${x.shipment_id} · ${x.vyapar_item||x.amazon_sku} · ${x.qty_received}/${x.qty_shipped} mila (−${x.qty_short}) · ${x.left} din`).join('\n')+(sh.length>6?`\n+${sh.length-6} aur`:'')+'\nDin baaki = Amazon ne receive karna shuru kiya us din se 30 din (purani shipments me banne ki date se safe andaza)'});
+      body:sh.slice(0,6).map(x=>`${x.account} · ${x.shipment_id} · ${x.vyapar_item||x.amazon_sku} · ${x.qty_received}/${x.qty_shipped} mila (−${x.qty_short}) · ${x.left} din`).join('\n')+(sh.length>6?`\n+${sh.length-6} aur`:'')+'\nDin baaki = pickup (IN_TRANSIT) ke din se 30 din - safe andaza, Seller Central pe ek baar check karo'});
   })();
 
   
