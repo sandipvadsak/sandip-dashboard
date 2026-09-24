@@ -112,7 +112,8 @@
   .spark>div,.hero-spark>i{cursor:pointer;}
   @keyframes shimmer{0%{background-position:-300px 0}100%{background-position:300px 0}}
   @media(max-width:768px){
-    body{padding-bottom:calc(70px + env(safe-area-inset-bottom));}
+    body{padding-bottom:0!important;}
+    main{padding-bottom:calc(var(--navH,80px) + 40px + env(safe-area-inset-bottom))!important;}
     button:active,.kpi:active,.lg:active{transform:scale(.97);transition:transform .08s;}
     #greet{display:block;text-align:left;font-size:12px;color:var(--text2);font-weight:500;margin-bottom:-4px;}
     header h1{text-align:left!important;font-size:17px;}
@@ -2079,7 +2080,9 @@ setInterval(loadAll,10*60*1000);
     });
   }
   addEventListener('resize',fitWide);
-  function all(){greet();tabIcons();cards();compact();hero();sheet();accordion();sections();fitWide();}
+  function navH(){var n=document.getElementById('navGroups');if(n&&M.matches)document.documentElement.style.setProperty('--navH',n.offsetHeight+'px');}
+  addEventListener('resize',navH);
+  function all(){navH();greet();tabIcons();cards();compact();hero();sheet();accordion();sections();fitWide();}
   var q=0;new MutationObserver(function(){if(q)return;q=1;setTimeout(function(){q=0;all();},80);}).observe(document.body,{childList:true,subtree:true});
   M.addEventListener?M.addEventListener('change',all):0;all();
   // Sales trend bar pe tap = us din ki sale (phone pe hover/title nahi chalta)
