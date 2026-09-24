@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Sandip · Amazon Business Dashboard</title>
-<script>try{var t=localStorage.getItem("dash_theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}</script>
+<script>try{var t=localStorage.getItem("dash_theme");if(t==="light"||(!t&&matchMedia("(max-width:768px)").matches))document.documentElement.setAttribute("data-theme","light");}catch(e){}</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
   :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#2a3441;--text:#e6edf3;--text2:#8b949e;--accent:#4ade80;--red:#f85149;--amber:#f0a020;--blue:#58a6ff;--pos:#4ade80;--neg:#f85149;--warn:#f0a020;--mono:'IBM Plex Mono',monospace;--sans:'Space Grotesk',sans-serif;}
