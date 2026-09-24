@@ -1840,7 +1840,7 @@ function legend(){if(document.getElementById("acctLegend"))return;var nav=docume
 function sync(){var s=document.getElementById("acctFilter");if(!s)return;var v=up(s.value);if(A.indexOf(v)>=0)s.dataset.acct=v;else delete s.dataset.acct;
  document.querySelectorAll("#acctLegend .lg").forEach(function(b){b.classList.toggle("off",!!v&&b.dataset.v!==v);});}
 function scan(){document.querySelectorAll("main tbody tr:not([data-ac-done])").forEach(doRow);document.querySelectorAll(".notif-body,.notif-title").forEach(function(e){if(!e.dataset.acDone){e.dataset.acDone=1;words(e);}});legend();sync();}
-var q=0;function later(){if(q)return;q=1;requestAnimationFrame(function(){q=0;scan();});}
+var q=0;function later(){if(q)return;q=1;setTimeout(function(){q=0;scan();},60);}
 new MutationObserver(later).observe(document.body,{childList:true,subtree:true});
 document.addEventListener("change",function(e){if(e.target&&e.target.id==="acctFilter")sync();});scan();})();</script>
 </body>
