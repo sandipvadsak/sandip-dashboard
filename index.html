@@ -421,7 +421,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'system_health?order=script.asc',
+      pullLog:'daily_pull_today?order=sort_order.asc',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -809,18 +809,17 @@ let reorderFilter='REORDER NOW',reorderSearch='';
 function renderPullHealth(){
   const logs=DATA.pullLog||[];
   if(!logs.length) return '';
-  const hasStale=logs.some(l=>l.status==='stale'||l.status==='never');
-  return `<div class="card"><div class="card-head"><h2>${hasStale?'⚠ ':'✓ '}System Health — Last Pull Status</h2><span class="hint">actual data se calculated · roz subah ~10 baje daily pull ke baad update</span></div>
-  <div class="table-scroll"><table><thead><tr><th>Script</th><th>Status</th><th class="num">Records</th><th class="num">Last Run</th></tr></thead><tbody>
+  const done=logs.filter(l=>l.status==='success').length, bad=logs.some(l=>l.status==='failed');
+  const icon=bad?'⚠ ':done===logs.length?'✓ ':'⏳ ';
+  const tm=t=>new Date(t).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'});
+  return `<div class="card"><div class="card-head"><h2>${icon}System Health — Aaj ka Daily Pull (${done}/${logs.length})</h2><span class="hint">raat 12 baje ke baad sab pending · step chalte hi success</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Script</th><th>Status</th><th class="num">Aaj Kab</th></tr></thead><tbody>
   ${logs.map(l=>{
-    const sc=l.status==='success'?'p-ok':l.status==='stale'?'p-soon':'p-none';
-    const ago=l.last_run?Math.round((Date.now()-new Date(l.last_run))/86400000):null;
-    const agoStr=ago===null?'Never':ago===0?'Today':ago===1?'Yesterday':`${ago}d ago`;
+    const sc=l.status==='success'?'p-ok':l.status==='failed'?'p-now':'p-soon';
     return `<tr>
-      <td style="font-family:var(--mono);font-size:12px">${l.script}</td>
+      <td style="font-family:var(--mono);font-size:12px">${l.step}</td>
       <td><span class="pill ${sc}">${l.status}</span></td>
-      <td class="num">${num(+l.records)}</td>
-      <td class="num" style="color:var(--text2)">${agoStr}</td>
+      <td class="num" style="color:var(--text2)">${l.status==='pending'?'—':tm(l.last_run)}</td>
     </tr>`;
   }).join('')}
   </tbody></table></div></div>`;
