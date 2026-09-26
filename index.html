@@ -2327,30 +2327,36 @@ setInterval(loadAll,10*60*1000);
   if(typeof renderStateOrders!=='function')return;
   var S=window.__stSku={q:'',rows:null,busy:false};
   var _o=renderStateOrders;
+  function acct(){return (typeof ACCT!=='undefined'&&ACCT)||'';}
+  function want(){return S.q+'|'+acct();}
   renderStateOrders=function(){
-    if(!S.q||!S.rows)return _o.apply(this,arguments);
+    var k=want();
+    if(k==='|'){S.rows=null;S.key='';return _o.apply(this,arguments);}
+    if(S.key!==k){if(!S.busy)setTimeout(function(){fetchRows();},0);return _o.apply(this,arguments);}
+    if(!S.rows)return _o.apply(this,arguments);
     var keep=DATA.stateOrders;DATA.stateOrders=S.rows;
     try{var h=_o.apply(this,arguments);}finally{DATA.stateOrders=keep;}
     if(!h)h='<div class="card"><div class="card-head"><h2>📍 Orders by State</h2></div><div style="padding:18px 20px;color:var(--text2)">"'+S.q+'" ke koi order nahi mile</div></div>';
     return h;
   };
-  async function run(q){
-    S.q=q.trim();
-    if(!S.q){S.rows=null;renderOverview();return;}
-    S.busy=true;renderOverview();
+  async function fetchRows(){
+    var k=want();if(k==='|'||S.busy)return;
+    S.busy=true;S.key=k;S.rows=null;box(true);
     try{
       var r=await fetch(SUPABASE_URL+'/rest/v1/rpc/state_orders_sku',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},H),
-        body:JSON.stringify({p_q:S.q,p_account:(typeof ACCT!=='undefined'&&ACCT)||null})});
+        body:JSON.stringify({p_q:S.q||null,p_account:acct()||null})});
       S.rows=r.ok?await r.json():[];
     }catch(e){S.rows=[];}
-    S.busy=false;renderOverview();
+    S.busy=false;if(want()!==S.key){S.key='';}
+    renderOverview();
   }
-  function box(){
+  function run(q){S.q=q.trim();S.key='';S.rows=null;renderOverview();}
+  function box(force){
     var c=[].slice.call(document.querySelectorAll('#v-overview .card')).find(function(x){var h=x.querySelector('.card-head h2');return h&&/Orders by State/.test(h.textContent);});
-    if(!c||c.querySelector('.st-sku'))return;
+    if(!c)return;var old=c.querySelector('.st-sku');if(old&&!force)return;if(old)old.remove();
     var d=document.createElement('div');d.className='st-sku';
     d.innerHTML='<input type="search" placeholder="🔍 SKU ya item likho (jaise Laser, KDC-...)" autocomplete="off">'+
-      (S.q?'<span class="st-sku-tag">'+(S.busy?'⏳ dhoondh rahe…':'Sirf: <b>'+S.q.replace(/</g,'&lt;')+'</b>')+' <button type="button">✕</button></span>':'');
+      ((S.q||acct())?'<span class="st-sku-tag">'+(S.busy?'⏳ dhoondh rahe…':'Sirf: <b>'+[acct(),S.q.replace(/</g,'&lt;')].filter(Boolean).join(' · ')+'</b>')+(S.q?' <button type="button">✕</button>':'')+'</span>':'');
     var inp=d.querySelector('input');inp.value=S.q;
     var t=0;inp.addEventListener('input',function(){clearTimeout(t);t=setTimeout(function(){run(inp.value);},700);});
     inp.addEventListener('keydown',function(e){if(e.key==='Enter'){clearTimeout(t);run(inp.value);}});
