@@ -277,6 +277,20 @@
   @media(max-width:768px){.st-sku{padding:10px 12px;}.st-sku input{font-size:16px;}}
 
   .ah-t td{vertical-align:top;}
+  @keyframes ahPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 55%,transparent);}50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--red) 0%,transparent);}}
+  #ahCard.ah-alert{border:2px solid var(--red)!important;background:color-mix(in srgb,var(--red) 8%,var(--panel))!important;animation:ahPulse 1.8s infinite;}
+  #ahCard.ah-alert>.card-head{background:var(--red)!important;border-left:none!important;}
+  #ahCard.ah-alert>.card-head h2,#ahCard.ah-alert>.card-head .hint,#ahCard.ah-alert>.card-head::after{color:#fff!important;}
+  #ahCard.ah-alert>.card-head h2::before{content:'🚨 ';}
+  #ahBanner{position:sticky;top:0;z-index:160;cursor:pointer;background:var(--red);color:#fff;padding:10px 28px;font-size:14px;display:flex;align-items:center;gap:10px;animation:ahFlash 1.2s infinite;box-shadow:0 4px 14px color-mix(in srgb,var(--red) 45%,transparent);}
+  #ahBanner .ahb-go{margin-left:auto;background:#fff;color:var(--red);border-radius:14px;padding:3px 12px;font-weight:700;font-size:12.5px;}
+  @keyframes ahFlash{0%,100%{background:var(--red);}50%{background:color-mix(in srgb,var(--red) 70%,#000);}}
+  @keyframes bellShake{0%,100%{transform:rotate(0)}20%{transform:rotate(-18deg)}40%{transform:rotate(16deg)}60%{transform:rotate(-10deg)}80%{transform:rotate(6deg)}}
+  html.ah-bad #notifBtn{animation:bellShake 1s infinite;border-color:var(--red)!important;}
+  @media(max-width:768px){#ahBanner{padding:9px 12px;font-size:12.5px;top:0;}}
+  #ahCard.ah-ok{border:1px solid color-mix(in srgb,var(--accent) 35%,var(--border))!important;}
+  #ahCard.ah-ok>.card-head{background:color-mix(in srgb,var(--accent) 10%,var(--panel))!important;border-left:4px solid var(--accent)!important;}
+  #ahCard.ah-ok>.card-head h2{color:var(--accent)!important;}
   .ah-it{display:inline-flex;align-items:center;gap:6px;margin:2px 6px 2px 0;padding:4px 10px;border-radius:20px;font-size:12px;white-space:normal;}
   .ah-it.need{background:color-mix(in srgb,var(--red) 13%,transparent);color:var(--red);font-weight:700;}
   .ah-it.done{background:var(--panel2);color:var(--text2);}
@@ -2418,7 +2432,7 @@ setInterval(loadAll,10*60*1000);
     var open=__ahOpen(),need=open.filter(function(x){return !x.acked;});
     var by={};hs.forEach(function(h){by[h.account]={h:h,items:[]};});need.forEach(function(x){by[x.account].items.push(x);});
     var last=hs.map(function(h){return h.checked_at;}).sort().pop();
-    var c=document.createElement('div');c.className='card';c.id='ahCard';c.style.border='1px solid '+(need.length?'var(--red)':'var(--border)');
+    var c=document.createElement('div');c.className='card '+(need.length?'ah-alert':'ah-ok');c.id='ahCard';
     var rows=Object.keys(by).sort().filter(function(acc){return by[acc].items.length;}).map(function(acc){var b=by[acc],h=b.h;
       var its=b.items.map(function(x){return x.acked
         ?'<span class="ah-it done" title="'+(x.ackBy||'')+'">✓ '+x.label+' ('+x.count+') <small>submitted '+new Date(x.ackAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'})+'</small> <a href="javascript:void 0" onclick="__ahUnack(\''+acc+'\',\''+x.metric+'\')">undo</a></span>'
@@ -2431,9 +2445,26 @@ setInterval(loadAll,10*60*1000);
     c.dataset.acc='1';
     return c;
   }
+  // Poore app me dhyan kheencho: laal patti (har tab), title blink, bell hilna, mobile vibrate
+  var blinkT=0,baseTitle=document.title,lastSig='';
+  function banner(){
+    var need=(DATA.acctHealth&&DATA.acctHealth.length)?__ahOpen().filter(function(x){return !x.acked;}):[];
+    var b=document.getElementById('ahBanner');
+    if(!need.length){if(b)b.remove();clearInterval(blinkT);blinkT=0;document.title=baseTitle;document.documentElement.classList.remove('ah-bad');return;}
+    document.documentElement.classList.add('ah-bad');
+    var accs=[...new Set(need.map(function(x){return x.account;}))];
+    var html='🚨 <b>ACCOUNT HEALTH ALERT</b> — '+need.length+' naya violation ('+accs.join(', ')+') · submit karna baaki <span class="ahb-go">Dekho →</span>';
+    if(!b){b=document.createElement('div');b.id='ahBanner';b.onclick=function(){go('overview');setTimeout(function(){var c=document.getElementById('ahCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});},100);};
+      var hd=document.querySelector('header');if(hd)hd.after(b);else document.body.prepend(b);}
+    if(b.innerHTML!==html)b.innerHTML=html;
+    if(!blinkT){var on=false;blinkT=setInterval(function(){on=!on;document.title=on?('🚨 ('+need.length+') ACCOUNT HEALTH'):baseTitle;},1200);}
+    var sig=need.map(function(x){return x.account+x.metric+x.count;}).join('|');
+    if(sig!==lastSig){lastSig=sig;try{if(navigator.vibrate)navigator.vibrate([300,150,300,150,300]);}catch(e){}}
+  }
+  setInterval(function(){try{banner();}catch(e){}},3000);
   if(typeof renderOverview==='function'){var _ro=renderOverview;renderOverview=function(){var r=_ro.apply(this,arguments);
     try{var v=document.getElementById('v-overview'),old=document.getElementById('ahCard');if(old)old.remove();var c=card();
-      if(v&&c){var k=v.querySelector('.kpis');if(k)k.after(c);else v.prepend(c);}}catch(e){}
+      if(v&&c){var k=v.querySelector('.kpis');if(c.classList.contains('ah-alert')||!k)v.prepend(c);else k.after(c);}}catch(e){}
     return r;};}
 })();
 </script>
