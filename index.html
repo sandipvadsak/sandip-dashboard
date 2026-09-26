@@ -276,6 +276,15 @@
   .st-sku-tag button{border:none;background:var(--panel);color:var(--text2);border-radius:50%;width:22px;height:22px;cursor:pointer;}
   @media(max-width:768px){.st-sku{padding:10px 12px;}.st-sku input{font-size:16px;}}
 
+  .ah-t td{vertical-align:top;}
+  .ah-it{display:inline-flex;align-items:center;gap:6px;margin:2px 6px 2px 0;padding:4px 10px;border-radius:20px;font-size:12px;white-space:normal;}
+  .ah-it.need{background:color-mix(in srgb,var(--red) 13%,transparent);color:var(--red);font-weight:700;}
+  .ah-it.done{background:var(--panel2);color:var(--text2);}
+  .ah-it.ok{color:var(--accent);}
+  .ah-it button{border:1px solid var(--red);background:var(--panel);color:var(--red);border-radius:14px;padding:2px 9px;font-size:11.5px;font-weight:700;cursor:pointer;}
+  .ah-it a{color:var(--text2);font-size:11px;}
+  @media(max-width:768px){.tcards.ah-t td{display:block!important;text-align:left!important;}}
+
   html[data-theme="light"]{--bg:#f5f7fa;--panel:#ffffff;--panel2:#eef1f5;--border:#d5dbe3;--text:#1a2230;--text2:#5b6675;--accent:#15803d;--red:#dc2626;--amber:#b45309;--blue:#1d4ed8;--pos:#15803d;--neg:#dc2626;--warn:#b45309;color-scheme:light;}
   html[data-theme="light"] header{background:linear-gradient(180deg,#ffffff,#f5f7fa);}
   html[data-theme="light"] #notifPanel{box-shadow:0 8px 28px rgba(0,0,0,.15);}
@@ -639,7 +648,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -695,6 +704,13 @@ function buildAlerts(){
     alerts.push({id:'inbshort_'+[...ids].sort().join('_')+'_'+units,level:'critical',
       title:`🚨 ${ids.size} closed shipment me ${units} units kam mile — claim karo (${minLeft?minLeft+" din baaki":"AAJ aakhri din"})`,
       body:sh.slice(0,6).map(x=>`<span class="shl" data-sid="${x.shipment_id}" style="cursor:pointer;text-decoration:underline dotted">${x.account} · ${x.shipment_id} · ${x.vyapar_item||x.amazon_sku} · ${x.qty_received}/${x.qty_shipped} mila (−${x.qty_short}) · ${x.left} din</span>`).join('\n')+(sh.length>6?`\n+${sh.length-6} aur`:'')+'\nDin baaki = pickup (IN_TRANSIT) ke din se 30 din - safe andaza, Seller Central pe ek baar check karo'});
+  })();
+
+  (function(){
+    if(typeof __ahOpen!=='function')return;var need=__ahOpen().filter(function(x){return !x.acked;});if(!need.length)return;
+    alerts.unshift({id:'acct_health_'+need.map(function(x){return x.account+x.metric+x.count;}).join('_'),level:'critical',
+      title:'🛡️ '+need.length+' account health violation me action chahiye',
+      body:need.slice(0,8).map(function(x){return x.account+' · '+x.label+' ('+x.count+')';}).join('\n')+(need.length>8?'\n+'+(need.length-8)+' aur':'')+'\nSeller Central → Account Health me appeal/document submit karke dashboard pe "✓ Submit kar diya" dabao'});
   })();
 
   
@@ -822,7 +838,8 @@ function readNotif(id){
 function notifTarget(id){
   if(id.startsWith('fba_'))return'fba_inbound';      // overdue FBA shipments
   if(id.startsWith('rem_'))return'fba_inbound';
-  if(id.startsWith('inbshort_'))return'fba_inbound';  // closed shipment me kam maal      // removal nahi mila
+  if(id.startsWith('inbshort_'))return'fba_inbound';  // closed shipment me kam maal
+  if(id.startsWith('acct_health_'))return'overview';  // account health      // removal nahi mila
   if(id.startsWith('reorder_'))return'reorder';
   if(id.startsWith('nc_'))return'returns';           // FC missing units
   if(id.startsWith('strand_'))return'returns';       // stranded
@@ -2369,6 +2386,54 @@ setInterval(loadAll,10*60*1000);
     if(S.focus){inp.focus();try{inp.setSelectionRange(inp.value.length,inp.value.length);}catch(e){}}
   }
   var q=0;new MutationObserver(function(){if(q)return;q=1;setTimeout(function(){q=0;box();},60);}).observe(document.body,{childList:true,subtree:true});box();
+})();
+</script>
+<script>
+(function(){
+  var LB={"listingPolicyViolations": "Listing policy violation", "productAuthenticityCustomerComplaints": "Product authenticity complaint", "productConditionCustomerComplaints": "Product condition complaint", "productSafetyCustomerComplaints": "Product safety complaint", "receivedIntellectualPropertyComplaints": "IP complaint", "restrictedProductPolicyViolations": "Restricted product violation", "suspectedIntellectualPropertyViolations": "Suspected IP violation", "foodAndProductSafetyIssues": "Food / product safety issue", "customerProductReviewsPolicyViolations": "Review policy violation", "otherPolicyViolations": "Other policy violation", "documentRequests": "Document request", "policyViolationWarnings": "Policy warning", "warningStates": "Account warning"};
+  window.__ahOpen=function(){
+    var ack={};(DATA.acctAck||[]).forEach(function(a){ack[a.account+'|'+a.metric]=a;});
+    var out=[];(DATA.acctHealth||[]).forEach(function(h){var c=h.counts||{};Object.keys(c).forEach(function(k){
+      if(!(+c[k]>0))return;var a=ack[h.account+'|'+k];
+      out.push({account:h.account,metric:k,label:LB[k]||k,count:+c[k],acked:!!(a&&+a.acked_count>=+c[k]),ackAt:a&&a.acked_at,ackBy:a&&a.acked_by,score:h.ahr_score,status:h.ahr_status});});});
+    return out;
+  };
+  window.__ahAck=async function(acc,metric,count,btn){
+    if(btn){btn.disabled=true;btn.textContent='…';}
+    try{
+      var r=await fetch(SUPABASE_URL+'/rest/v1/account_health_ack?on_conflict=account,metric',{method:'POST',
+        headers:Object.assign({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},H),
+        body:JSON.stringify([{account:acc,metric:metric,acked_count:count,acked_at:new Date().toISOString()}])});
+      if(!r.ok)throw new Error(r.status);
+      var row=(await r.json())[0];DATA.acctAck=(DATA.acctAck||[]).filter(function(a){return !(a.account===acc&&a.metric===metric);}).concat([row]);
+    }catch(e){alert('Save nahi hua - dobara try karo');}
+    rerender();
+  };
+  window.__ahUnack=async function(acc,metric){
+    await fetch(SUPABASE_URL+'/rest/v1/account_health_ack?account=eq.'+encodeURIComponent(acc)+'&metric=eq.'+encodeURIComponent(metric),{method:'DELETE',headers:H});
+    DATA.acctAck=(DATA.acctAck||[]).filter(function(a){return !(a.account===acc&&a.metric===metric);});rerender();
+  };
+  function card(){
+    var hs=DATA.acctHealth||[];if(!hs.length)return null;
+    var open=__ahOpen(),need=open.filter(function(x){return !x.acked;});
+    var by={};hs.forEach(function(h){by[h.account]={h:h,items:[]};});open.forEach(function(x){by[x.account].items.push(x);});
+    var last=hs.map(function(h){return h.checked_at;}).sort().pop();
+    var c=document.createElement('div');c.className='card';c.id='ahCard';c.style.border='1px solid '+(need.length?'var(--red)':'var(--border)');
+    var rows=Object.keys(by).sort().map(function(acc){var b=by[acc],h=b.h;
+      var its=b.items.map(function(x){return x.acked
+        ?'<span class="ah-it done" title="'+(x.ackBy||'')+'">✓ '+x.label+' ('+x.count+') <small>submitted '+new Date(x.ackAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'})+'</small> <a href="javascript:void 0" onclick="__ahUnack(\''+acc+'\',\''+x.metric+'\')">undo</a></span>'
+        :'<span class="ah-it need">⚠ '+x.label+' ('+x.count+') <button onclick="__ahAck(\''+acc+'\',\''+x.metric+'\','+x.count+',this)">✓ Submit kar diya</button></span>';}).join('')||'<span class="ah-it ok">✓ Koi violation nahi</span>';
+      var st=(h.ahr_status||'').toUpperCase();
+      return '<tr><td>'+acc+'</td><td class="num"><b>'+(h.ahr_score==null?'—':Math.round(h.ahr_score))+'</b> <span class="pill '+(st==='GREAT'||st==='GOOD'?'p-ok':st==='FAIR'?'p-soon':'p-now')+'">'+(h.ahr_status||'?')+'</span></td><td>'+its+'</td></tr>';}).join('');
+    c.innerHTML='<div class="card-head"><h2>🛡️ Account Health — '+(need.length?need.length+' me action chahiye':'sab theek')+'</h2><span class="hint">Amazon Seller Performance report · aakhri check '+(last?new Date(last).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—')+' · appeal/document submit karke "✓" dabao</span></div>'+
+      '<div class="table-scroll"><table class="ah-t"><thead><tr><th>Account</th><th class="num">AHR</th><th>Violations</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    c.dataset.acc='1';
+    return c;
+  }
+  if(typeof renderOverview==='function'){var _ro=renderOverview;renderOverview=function(){var r=_ro.apply(this,arguments);
+    try{var v=document.getElementById('v-overview'),old=document.getElementById('ahCard');if(old)old.remove();var c=card();
+      if(v&&c){var k=v.querySelector('.kpis');if(k)k.after(c);else v.prepend(c);}}catch(e){}
+    return r;};}
 })();
 </script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});</script>
