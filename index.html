@@ -709,7 +709,7 @@ function buildAlerts(){
   (function(){
     if(typeof __ahOpen!=='function')return;var need=__ahOpen().filter(function(x){return !x.acked;});if(!need.length)return;
     alerts.unshift({id:'acct_health_'+need.map(function(x){return x.account+x.metric+x.count;}).join('_'),level:'critical',
-      title:'🛡️ '+need.length+' account health violation me action chahiye',
+      title:'🛡️ '+need.length+' naye account health violation - submit karna baaki',
       body:need.slice(0,8).map(function(x){return x.account+' · '+x.label+' ('+x.count+')';}).join('\n')+(need.length>8?'\n+'+(need.length-8)+' aur':'')+'\nSeller Central → Account Health me appeal/document submit karke dashboard pe "✓ Submit kar diya" dabao'});
   })();
 
@@ -2416,17 +2416,18 @@ setInterval(loadAll,10*60*1000);
   function card(){
     var hs=DATA.acctHealth||[];if(!hs.length)return null;
     var open=__ahOpen(),need=open.filter(function(x){return !x.acked;});
-    var by={};hs.forEach(function(h){by[h.account]={h:h,items:[]};});open.forEach(function(x){by[x.account].items.push(x);});
+    var by={};hs.forEach(function(h){by[h.account]={h:h,items:[]};});need.forEach(function(x){by[x.account].items.push(x);});
     var last=hs.map(function(h){return h.checked_at;}).sort().pop();
     var c=document.createElement('div');c.className='card';c.id='ahCard';c.style.border='1px solid '+(need.length?'var(--red)':'var(--border)');
-    var rows=Object.keys(by).sort().map(function(acc){var b=by[acc],h=b.h;
+    var rows=Object.keys(by).sort().filter(function(acc){return by[acc].items.length;}).map(function(acc){var b=by[acc],h=b.h;
       var its=b.items.map(function(x){return x.acked
         ?'<span class="ah-it done" title="'+(x.ackBy||'')+'">✓ '+x.label+' ('+x.count+') <small>submitted '+new Date(x.ackAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'})+'</small> <a href="javascript:void 0" onclick="__ahUnack(\''+acc+'\',\''+x.metric+'\')">undo</a></span>'
-        :'<span class="ah-it need">⚠ '+x.label+' ('+x.count+') <button onclick="__ahAck(\''+acc+'\',\''+x.metric+'\','+x.count+',this)">✓ Submit kar diya</button></span>';}).join('')||'<span class="ah-it ok">✓ Koi violation nahi</span>';
+        :'<span class="ah-it need">⚠ '+x.label+' ('+x.count+') <button onclick="__ahAck(\''+acc+'\',\''+x.metric+'\','+x.count+',this)">✓ Submit kar diya</button></span>';}).join('');
       var st=(h.ahr_status||'').toUpperCase();
       return '<tr><td>'+acc+'</td><td class="num"><b>'+(h.ahr_score==null?'—':Math.round(h.ahr_score))+'</b> <span class="pill '+(st==='GREAT'||st==='GOOD'?'p-ok':st==='FAIR'?'p-soon':'p-now')+'">'+(h.ahr_status||'?')+'</span></td><td>'+its+'</td></tr>';}).join('');
-    c.innerHTML='<div class="card-head"><h2>🛡️ Account Health — '+(need.length?need.length+' me action chahiye':'sab theek')+'</h2><span class="hint">Amazon Seller Performance report · aakhri check '+(last?new Date(last).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—')+' · appeal/document submit karke "✓" dabao</span></div>'+
-      '<div class="table-scroll"><table class="ah-t"><thead><tr><th>Account</th><th class="num">AHR</th><th>Violations</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    c.innerHTML='<div class="card-head"><h2>🛡️ Account Health — '+(need.length?need.length+' me submit karna baaki':'sab theek')+'</h2><span class="hint">Amazon Seller Performance report · aakhri check '+(last?new Date(last).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—')+' · appeal/document submit karke "✓" dabao</span></div>'+
+      (need.length?'<div class="table-scroll"><table class="ah-t"><thead><tr><th>Account</th><th class="num">AHR</th><th>Submit karna baaki</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+        :'<div style="padding:12px 20px;color:var(--accent);font-weight:600">✓ Kisi account me naya violation nahi · <span style="color:var(--text2);font-weight:400">AHR: '+hs.map(function(h){return h.account+' '+(h.ahr_score==null?'—':Math.round(h.ahr_score));}).join(' · ')+'</span></div>');
     c.dataset.acc='1';
     return c;
   }
