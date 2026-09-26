@@ -269,6 +269,13 @@
     #v-overview .kpis>.kpi:first-child .value{font-size:32px!important;}
   }
 
+  .st-sku{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--border);}
+  .st-sku input{flex:1 1 260px;min-width:0;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:9px 14px;font-size:14px;}
+  .st-sku input:focus{outline:none;border-color:var(--accent);}
+  .st-sku-tag{display:inline-flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);border-radius:20px;padding:5px 6px 5px 12px;font-size:12.5px;}
+  .st-sku-tag button{border:none;background:var(--panel);color:var(--text2);border-radius:50%;width:22px;height:22px;cursor:pointer;}
+  @media(max-width:768px){.st-sku{padding:10px 12px;}.st-sku input{font-size:16px;}}
+
   html[data-theme="light"]{--bg:#f5f7fa;--panel:#ffffff;--panel2:#eef1f5;--border:#d5dbe3;--text:#1a2230;--text2:#5b6675;--accent:#15803d;--red:#dc2626;--amber:#b45309;--blue:#1d4ed8;--pos:#15803d;--neg:#dc2626;--warn:#b45309;color-scheme:light;}
   html[data-theme="light"] header{background:linear-gradient(180deg,#ffffff,#f5f7fa);}
   html[data-theme="light"] #notifPanel{box-shadow:0 8px 28px rgba(0,0,0,.15);}
@@ -2311,6 +2318,47 @@ setInterval(loadAll,10*60*1000);
     });
   }
   var q=0;new MutationObserver(function(){if(q)return;q=1;setTimeout(function(){q=0;deco();},70);}).observe(document.body,{childList:true,subtree:true});deco();
+})();
+</script>
+<script>
+(function(){
+  if(typeof renderStateOrders!=='function')return;
+  var S=window.__stSku={q:'',rows:null,busy:false};
+  var _o=renderStateOrders;
+  renderStateOrders=function(){
+    if(!S.q||!S.rows)return _o.apply(this,arguments);
+    var keep=DATA.stateOrders;DATA.stateOrders=S.rows;
+    try{var h=_o.apply(this,arguments);}finally{DATA.stateOrders=keep;}
+    if(!h)h='<div class="card"><div class="card-head"><h2>📍 Orders by State</h2></div><div style="padding:18px 20px;color:var(--text2)">"'+S.q+'" ke koi order nahi mile</div></div>';
+    return h;
+  };
+  async function run(q){
+    S.q=q.trim();
+    if(!S.q){S.rows=null;renderOverview();return;}
+    S.busy=true;renderOverview();
+    try{
+      var r=await fetch(SUPABASE_URL+'/rest/v1/rpc/state_orders_sku',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},H),
+        body:JSON.stringify({p_q:S.q,p_account:(typeof ACCT!=='undefined'&&ACCT)||null})});
+      S.rows=r.ok?await r.json():[];
+    }catch(e){S.rows=[];}
+    S.busy=false;renderOverview();
+  }
+  function box(){
+    var c=[].slice.call(document.querySelectorAll('#v-overview .card')).find(function(x){var h=x.querySelector('.card-head h2');return h&&/Orders by State/.test(h.textContent);});
+    if(!c||c.querySelector('.st-sku'))return;
+    var d=document.createElement('div');d.className='st-sku';
+    d.innerHTML='<input type="search" placeholder="🔍 SKU ya item likho (jaise Laser, KDC-...)" autocomplete="off">'+
+      (S.q?'<span class="st-sku-tag">'+(S.busy?'⏳ dhoondh rahe…':'Sirf: <b>'+S.q.replace(/</g,'&lt;')+'</b>')+' <button type="button">✕</button></span>':'');
+    var inp=d.querySelector('input');inp.value=S.q;
+    var t=0;inp.addEventListener('input',function(){clearTimeout(t);t=setTimeout(function(){run(inp.value);},700);});
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter'){clearTimeout(t);run(inp.value);}});
+    inp.addEventListener('click',function(e){e.stopPropagation();});
+    var x=d.querySelector('button');if(x)x.onclick=function(e){e.stopPropagation();run('');};
+    var hd=c.querySelector('.card-head');hd.after(d);
+    inp.addEventListener('focus',function(){S.focus=true;});inp.addEventListener('blur',function(){setTimeout(function(){if(document.activeElement!==inp)S.focus=false;},50);});
+    if(S.focus){inp.focus();try{inp.setSelectionRange(inp.value.length,inp.value.length);}catch(e){}}
+  }
+  var q=0;new MutationObserver(function(){if(q)return;q=1;setTimeout(function(){q=0;box();},60);}).observe(document.body,{childList:true,subtree:true});box();
 })();
 </script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});</script>
