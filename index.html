@@ -2050,8 +2050,10 @@ setInterval(loadAll,10*60*1000);
       (sh.length?`<div class="table-scroll"><table><thead><tr><th>Shipment ID</th><th>Account</th><th>Item</th><th class="num">Bheja</th><th class="num">Mila</th><th class="num">Kam</th><th class="num">Din Baaki</th></tr></thead><tbody>${
         sh.sort((a,b)=>a.left-b.left).map(x=>`<tr><td style="font-family:var(--mono);font-size:12px">${x.shipment_id}</td><td>${x.account}</td><td><b>${x.vyapar_item||x.amazon_sku}</b></td><td class="num">${x.qty_shipped}</td><td class="num">${x.qty_received}</td><td class="num neg"><b>−${x.qty_short}</b></td><td class="num ${x.left<=3?'neg':'warn'}"><b>${x.left===0?'AAJ':x.left+' din'}</b></td></tr>`).join('')
       }</tbody></table></div>`:'<div style="padding:16px 20px;color:var(--accent)">✓ Koi closed shipment me maal kam nahi (claim window ke andar)</div>');
+    // accordion ise band na kare: claim wali cheez hamesha khuli dikhe (27 Sep)
+    c.dataset.acc='1';if(sh.length||foc)c.classList.remove('acc-closed');else c.classList.add('acc-closed');
     v.prepend(c);
-    if(foc)setTimeout(()=>c.scrollIntoView({block:'start'}),50);
+    if(foc)setTimeout(()=>c.scrollIntoView({block:'start',behavior:'smooth'}),80);
   };
   document.addEventListener('click',function(e){if(!e.target.closest)return;const l=e.target.closest('.shl');if(l){window.__shortFocus=l.dataset.sid;setTimeout(()=>renderFbaInbound(),0);}else if(e.target.closest('.notif-item')){window.__shortFocus=null;setTimeout(()=>renderFbaInbound(),0);}},true);
 })();
