@@ -301,6 +301,8 @@
   .ah-it a{color:var(--text2);font-size:11px;}
   @media(max-width:768px){.tcards.ah-t td{display:block!important;text-align:left!important;}}
 nav#nav{position:sticky;top:var(--hdrH,0px);z-index:9;}
+/* account chips ek hi line me (P&L Accounts column) - 1 Oct */
+td:has(.acct-badge){white-space:nowrap!important;max-width:none!important;overflow:visible!important;}
 
   html[data-theme="light"]{--bg:#f5f7fa;--panel:#ffffff;--panel2:#eef1f5;--border:#d5dbe3;--text:#1a2230;--text2:#5b6675;--accent:#15803d;--red:#dc2626;--amber:#b45309;--blue:#1d4ed8;--pos:#15803d;--neg:#dc2626;--warn:#b45309;color-scheme:light;}
   html[data-theme="light"] header{background:linear-gradient(180deg,#ffffff,#f5f7fa);}
