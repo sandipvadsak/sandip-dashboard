@@ -667,7 +667,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -917,7 +917,7 @@ function renderOverview(){
   const gC=g.reduce((s,x)=>s+ +x.rev_current,0),gP=g.reduce((s,x)=>s+ +x.rev_prev,0);
   const totGrowth=gP?((gC-gP)/gP*100).toFixed(1):0;
   // yesterday only meaningful for all (daily_sales is all-accounts)
-  const d=DATA.daily;
+  const d=ACCT?(DATA.dailyAcct||[]).filter(x=>x.account===ACCT).sort((a,b)=>a.order_date<b.order_date?1:-1):DATA.daily;
   const todayStr=localDate();
   const yestStr=localDate(new Date(Date.now()-86400000));
   const todayRow=d.find(x=>x.order_date===todayStr)||{net_revenue:0,units:0,orders:0};
@@ -946,7 +946,7 @@ function renderOverview(){
       ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
     </div>
     ${renderHomework()}
-    ${ACCT?'':`<div class="card"><div class="card-head"><h2>Sales Trend — 30 days</h2><span class="hint">7 din: <b style="color:var(--accent)">${inr(rev7)}</b> · <b>${num([...d].slice(0,7).reduce((s,x)=>s+ +x.orders,0))}</b> orders &nbsp;|&nbsp; 30 din: <b style="color:var(--accent)">${inr(rev30)}</b> · <b>${num([...d].slice(0,30).reduce((s,x)=>s+ +x.orders,0))}</b> orders · hover = value</span></div>
+    ${`<div class="card"><div class="card-head"><h2>Sales Trend — 30 days${acctNote}</h2><span class="hint">7 din: <b style="color:var(--accent)">${inr(rev7)}</b> · <b>${num([...d].slice(0,7).reduce((s,x)=>s+ +x.orders,0))}</b> orders &nbsp;|&nbsp; 30 din: <b style="color:var(--accent)">${inr(rev30)}</b> · <b>${num([...d].slice(0,30).reduce((s,x)=>s+ +x.orders,0))}</b> orders · hover = value</span></div>
       <div style="padding:18px 20px"><div class="spark">${spark.map(x=>`<div style="height:${(+x.net_revenue/maxS*100).toFixed(0)}%" title="${x.order_date}: ${inr(+x.net_revenue)} · ${num(+x.orders)} orders · ${num(+x.units)} units"></div>`).join('')}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:6px;font-family:var(--mono)"><span>${spark[0]?.order_date||''}</span><span>${spark[spark.length-1]?.order_date||''}</span></div></div></div>`}
     ${ACCT?(()=>{
