@@ -946,8 +946,8 @@ function renderOverview(){
       ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
     </div>
     ${renderHomework()}
-    ${ACCT?'':`<div class="card"><div class="card-head"><h2>Sales Trend — 30 days</h2><span class="hint">7 din: <b style="color:var(--accent)">${inr(rev7)}</b> · 30 din: <b style="color:var(--accent)">${inr(rev30)}</b> · hover = value</span></div>
-      <div style="padding:18px 20px"><div class="spark">${spark.map(x=>`<div style="height:${(+x.net_revenue/maxS*100).toFixed(0)}%" title="${x.order_date}: ${inr(+x.net_revenue)}"></div>`).join('')}</div>
+    ${ACCT?'':`<div class="card"><div class="card-head"><h2>Sales Trend — 30 days</h2><span class="hint">7 din: <b style="color:var(--accent)">${inr(rev7)}</b> · <b>${num([...d].slice(0,7).reduce((s,x)=>s+ +x.orders,0))}</b> orders &nbsp;|&nbsp; 30 din: <b style="color:var(--accent)">${inr(rev30)}</b> · <b>${num([...d].slice(0,30).reduce((s,x)=>s+ +x.orders,0))}</b> orders · hover = value</span></div>
+      <div style="padding:18px 20px"><div class="spark">${spark.map(x=>`<div style="height:${(+x.net_revenue/maxS*100).toFixed(0)}%" title="${x.order_date}: ${inr(+x.net_revenue)} · ${num(+x.orders)} orders · ${num(+x.units)} units"></div>`).join('')}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:6px;font-family:var(--mono)"><span>${spark[0]?.order_date||''}</span><span>${spark[spark.length-1]?.order_date||''}</span></div></div></div>`}
     ${ACCT?(()=>{
       const rs=(DATA.skuVelAcct||[]).filter(x=>x.account===ACCT&&+x.units_30d>0).slice(0,10);
