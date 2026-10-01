@@ -664,7 +664,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -942,7 +942,14 @@ function renderOverview(){
     ${ACCT?'':`<div class="card"><div class="card-head"><h2>Sales Trend — 30 days</h2><span class="hint">7 din: <b style="color:var(--accent)">${inr(rev7)}</b> · 30 din: <b style="color:var(--accent)">${inr(rev30)}</b> · hover = value</span></div>
       <div style="padding:18px 20px"><div class="spark">${spark.map(x=>`<div style="height:${(+x.net_revenue/maxS*100).toFixed(0)}%" title="${x.order_date}: ${inr(+x.net_revenue)}"></div>`).join('')}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:6px;font-family:var(--mono)"><span>${spark[0]?.order_date||''}</span><span>${spark[spark.length-1]?.order_date||''}</span></div></div></div>`}
-    ${ACCT?'':(()=>{
+    ${ACCT?(()=>{
+      const rs=(DATA.skuVelAcct||[]).filter(x=>x.account===ACCT&&+x.units_30d>0).slice(0,10);
+      return `<div class="card"><div class="card-head"><h2>Fastest Moving — top 10</h2><span class="hint">${ACCT} · SKU · units/day (30 din) · Is Hafta = current momentum</span></div>
+      <div class="table-scroll"><table><thead><tr><th>SKU</th><th>Item</th><th class="num">Vel/day</th><th class="num">Is Hafta</th><th class="num">Pichla Hafta</th><th class="num">30d Units</th></tr></thead><tbody>
+      ${rs.length?rs.map(x=>{const tw=+x.this_week||0,lw=+x.last_week||0;
+        return `<tr><td><b>${x.amazon_sku}</b></td><td>${x.vyapar_item||'—'}</td><td class="num pos">${(+x.per_day).toFixed(1)}</td><td class="num ${tw>lw?'pos':tw<lw?'neg':''}">${num(tw)}${tw>lw?' ▲':tw<lw?' ▼':''}</td><td class="num">${num(lw)}</td><td class="num">${num(+x.units_30d)}</td></tr>`;}).join(''):'<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--text2)">Is account me pichle 30 din koi sale nahi</td></tr>'}
+      </tbody></table></div></div>`;
+    })():(()=>{
       const vmap={};(DATA.velocity||[]).forEach(v=>{vmap[v.vyapar_item]=v;});
       return `<div class="card"><div class="card-head"><h2>Fastest Moving — top 10</h2><span class="hint">all accounts · units/day · Is Hafta = current momentum</span></div>
       <div class="table-scroll"><table><thead><tr><th>Item</th><th class="num">Vel/day</th><th class="num">Is Hafta</th><th class="num">90d Units</th><th class="num">Incoming</th><th class="num">WH Stock</th><th class="num">Days Left</th></tr></thead><tbody>
