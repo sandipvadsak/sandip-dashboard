@@ -950,9 +950,9 @@ function renderOverview(){
       <div style="padding:18px 20px"><div class="spark">${spark.map(x=>`<div style="height:${(+x.net_revenue/maxS*100).toFixed(0)}%" title="${x.order_date}: ${inr(+x.net_revenue)} · ${num(+x.orders)} orders · ${num(+x.units)} units"></div>`).join('')}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:6px;font-family:var(--mono)"><span>${spark[0]?.order_date||''}</span><span>${spark[spark.length-1]?.order_date||''}</span></div></div></div>`}
     ${ACCT?(()=>{
-      const rs=(DATA.skuVelAcct||[]).filter(x=>x.account===ACCT&&+x.units_30d>0).slice(0,10);
-      return `<div class="card"><div class="card-head"><h2>Fastest Moving — top 10</h2><span class="hint">${ACCT} · SKU · units/day (30 din) · Is Hafta = current momentum</span></div>
-      <div class="table-scroll"><table><thead><tr><th>SKU</th><th>Item</th><th class="num">Vel/day</th><th class="num">Is Hafta</th><th class="num">Pichla Hafta</th><th class="num">30d Units</th></tr></thead><tbody>
+      const rs=(DATA.skuVelAcct||[]).filter(x=>x.account===ACCT&&+x.units_30d>0);
+      return `<div class="card"><div class="card-head"><h2>Fastest Moving — ${rs.length} SKU (30 din me sale)</h2><span class="hint">${ACCT} · SKU · units/day (30 din) · Is Hafta = current momentum</span></div>
+      <div class="table-scroll" style="max-height:520px;overflow-y:auto"><table><thead><tr><th>SKU</th><th>Item</th><th class="num">Vel/day</th><th class="num">Is Hafta</th><th class="num">Pichla Hafta</th><th class="num">30d Units</th></tr></thead><tbody>
       ${rs.length?rs.map(x=>{const tw=+x.this_week||0,lw=+x.last_week||0;
         return `<tr><td><b>${x.amazon_sku}</b></td><td>${x.vyapar_item||'—'}</td><td class="num pos">${(+x.per_day).toFixed(1)}</td><td class="num ${tw>lw?'pos':tw<lw?'neg':''}">${num(tw)}${tw>lw?' ▲':tw<lw?' ▼':''}</td><td class="num">${num(lw)}</td><td class="num">${num(+x.units_30d)}</td></tr>`;}).join(''):'<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--text2)">Is account me pichle 30 din koi sale nahi</td></tr>'}
       </tbody></table></div></div>`;
