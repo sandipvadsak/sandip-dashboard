@@ -490,10 +490,13 @@ const AUTH_KEY='dash_sb_session';
 let authOK=false;
 // Mobile (24 Sep): session sirf sessionStorage me - app band = logout; background me 60s+ = logout.
 const AUTH_MOB=matchMedia('(max-width:768px)').matches;
-const AUTH_ST=AUTH_MOB?sessionStorage:localStorage;
-try{if(AUTH_MOB){localStorage.removeItem(AUTH_KEY);if(!sessionStorage.getItem(AUTH_KEY))localStorage.removeItem('dash_cache');}}catch(e){}
-function _sess(){try{return JSON.parse(AUTH_ST.getItem(AUTH_KEY)||'null');}catch(e){return null;}}
-function _setSess(s){try{AUTH_ST.setItem(AUTH_KEY,JSON.stringify(s));}catch(e){} H.Authorization='Bearer '+s.access_token; authOK=true;}
+// 6 Oct: Fingerprint lock ON ho to mobile pe bhi session localStorage me (app band karke kholne par
+// fingerprint se khule) - us session ki hifazat fingerprint gate karta he. OFF = pehle jaisa.
+const _bioSet=()=>{try{return !!localStorage.getItem('dash_bio_id');}catch(e){return false;}};
+const _st=()=>(AUTH_MOB&&!_bioSet())?sessionStorage:localStorage;
+try{if(AUTH_MOB&&!_bioSet()){localStorage.removeItem(AUTH_KEY);if(!sessionStorage.getItem(AUTH_KEY))localStorage.removeItem('dash_cache');}}catch(e){}
+function _sess(){try{return JSON.parse(_st().getItem(AUTH_KEY)||'null');}catch(e){return null;}}
+function _setSess(s){try{_st().setItem(AUTH_KEY,JSON.stringify(s));}catch(e){} H.Authorization='Bearer '+s.access_token; authOK=true;}
 async function authRefresh(){
   const s=_sess(); if(!s||!s.refresh_token) return false;
   try{
@@ -536,9 +539,14 @@ async function bioEnable(){
     rp:{name:'Ecom24x7 Dashboard'},user:{id:new TextEncoder().encode(em),name:em,displayName:em},
     pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
     authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000}});
+  const cur=_sess();
   localStorage.setItem(BIO_KEY,_b64u(c.rawId));
+  if(cur)_setSess(cur);  // ab localStorage me - app band karke kholne par bhi rahega
 }
-function bioDisable(){try{localStorage.removeItem(BIO_KEY);}catch(e){}}
+function bioDisable(){try{
+  const cur=_sess();localStorage.removeItem(BIO_KEY);
+  if(AUTH_MOB){localStorage.removeItem(AUTH_KEY);if(cur)sessionStorage.setItem(AUTH_KEY,JSON.stringify(cur));}
+}catch(e){}}
 async function bioVerify(){
   await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),
     allowCredentials:[{type:'public-key',id:_ub64(localStorage.getItem(BIO_KEY))}],userVerification:'required',timeout:60000}});
