@@ -108,14 +108,7 @@
   #greet{display:none;}
   #ptr{display:none;}
   @media(max-width:768px){#ptr{display:block;}}
-  html.bg-hidden body>*:not(#lockScreen):not(#bioLock),html.locked body>*:not(#lockScreen):not(#bioLock){visibility:hidden!important;}
-  #bioLock{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--bg);visibility:visible!important;}
-  #bioLock .bl-box{text-align:center;padding:28px;display:flex;flex-direction:column;align-items:center;gap:12px;}
-  #bioLock .bl-ic{font-size:54px;}
-  #bioLock .bl-t{font-size:19px;font-weight:800;color:var(--text);}
-  #bioLock #blGo{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 22px;font-size:16px;font-weight:700;cursor:pointer;}
-  #bioLock .bl-m{min-height:18px;color:var(--red);font-size:13px;}
-  #bioLock .bl-pw{background:none;border:none;color:var(--text2);text-decoration:underline;font-size:13.5px;cursor:pointer;}
+  html.bg-hidden body>*:not(#lockScreen),html.locked body>*:not(#lockScreen){visibility:hidden!important;}
   .card.acc-closed>*:not(.card-head){display:none!important;}
   main .card>.card-head{cursor:pointer;position:relative;padding-right:40px;}
   main .card>.card-head::after{content:'▴';position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:14px;}
@@ -490,15 +483,12 @@ const AUTH_KEY='dash_sb_session';
 let authOK=false;
 // Mobile (24 Sep): session sirf sessionStorage me - app band = logout; background me 60s+ = logout.
 const AUTH_MOB=matchMedia('(max-width:768px)').matches;
-// 6 Oct: Fingerprint lock ON ho to mobile pe bhi session localStorage me (app band karke kholne par
-// fingerprint se khule) - us session ki hifazat fingerprint gate karta he. OFF = pehle jaisa.
-const _bioSet=()=>{try{return !!localStorage.getItem('dash_bio_id');}catch(e){return false;}};
-const _st=()=>(AUTH_MOB&&!_bioSet())?sessionStorage:localStorage;
-// fingerprint ON par purana session sessionStorage me pada ho to localStorage me le aao
-try{if(_bioSet()&&!localStorage.getItem(AUTH_KEY)&&sessionStorage.getItem(AUTH_KEY)){localStorage.setItem(AUTH_KEY,sessionStorage.getItem(AUTH_KEY));sessionStorage.removeItem(AUTH_KEY);}}catch(e){}
-try{if(AUTH_MOB&&!_bioSet()){localStorage.removeItem(AUTH_KEY);if(!sessionStorage.getItem(AUTH_KEY))localStorage.removeItem('dash_cache');}}catch(e){}
-function _sess(){try{return JSON.parse(_st().getItem(AUTH_KEY)||'null');}catch(e){return null;}}
-function _setSess(s){try{_st().setItem(AUTH_KEY,JSON.stringify(s));}catch(e){} H.Authorization='Bearer '+s.access_token; authOK=true;}
+const AUTH_ST=AUTH_MOB?sessionStorage:localStorage;
+// 6 Oct: fingerprint lock hataya (owner) - jin phone pe chalu tha unka setting saaf, login is baar ke liye sessionStorage me
+try{if(localStorage.getItem('dash_bio_id')){const ls=localStorage.getItem(AUTH_KEY);localStorage.removeItem('dash_bio_id');if(AUTH_MOB&&ls&&!sessionStorage.getItem(AUTH_KEY))sessionStorage.setItem(AUTH_KEY,ls);}}catch(e){}
+try{if(AUTH_MOB){localStorage.removeItem(AUTH_KEY);if(!sessionStorage.getItem(AUTH_KEY))localStorage.removeItem('dash_cache');}}catch(e){}
+function _sess(){try{return JSON.parse(AUTH_ST.getItem(AUTH_KEY)||'null');}catch(e){return null;}}
+function _setSess(s){try{AUTH_ST.setItem(AUTH_KEY,JSON.stringify(s));}catch(e){} H.Authorization='Bearer '+s.access_token; authOK=true;}
 async function authRefresh(){
   const s=_sess(); if(!s||!s.refresh_token) return false;
   try{
@@ -526,54 +516,10 @@ async function authLogout(){
   try{localStorage.removeItem(AUTH_KEY);sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem('dash_cache');}catch(e){}
   location.reload();
 }
-// ── Fingerprint / Face lock (6 Oct 2026, user) ─────────────────────────────
-// Phone ka apna biometric (WebAuthn platform authenticator). Login (email+password) waisa hi rehta
-// he - ye uske upar ek extra taala he: app khulne par / bahar se lautne par fingerprint maangta he.
-const BIO_KEY='dash_bio_id';
-function bioOn(){try{return !!localStorage.getItem(BIO_KEY);}catch(e){return false;}}
-const _b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-const _ub64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0));
-async function bioSupported(){try{return !!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());}catch(e){return false;}}
-async function bioEnable(){
-  if(!await bioSupported())throw new Error('Is phone / browser me fingerprint-face lock support nahi he');
-  const s=_sess(),em=(s&&s.user&&s.user.email)||'user';
-  const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),
-    rp:{name:'Ecom24x7 Dashboard'},user:{id:new TextEncoder().encode(em),name:em,displayName:em},
-    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
-    authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000}});
-  const cur=_sess();
-  localStorage.setItem(BIO_KEY,_b64u(c.rawId));
-  if(cur)_setSess(cur);  // ab localStorage me - app band karke kholne par bhi rahega
-}
-function bioDisable(){try{
-  const cur=_sess();localStorage.removeItem(BIO_KEY);
-  if(AUTH_MOB){localStorage.removeItem(AUTH_KEY);if(cur)sessionStorage.setItem(AUTH_KEY,JSON.stringify(cur));}
-}catch(e){}}
-async function bioVerify(){
-  await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),
-    allowCredentials:[{type:'public-key',id:_ub64(localStorage.getItem(BIO_KEY))}],userVerification:'required',timeout:60000}});
-}
-let _bioP=null;
-function bioGate(){
-  if(_bioP)return _bioP;
-  _bioP=new Promise(res=>{
-    const d=document.createElement('div');d.id='bioLock';
-    d.innerHTML='<div class="bl-box"><div class="bl-ic">🔒</div><div class="bl-t">Dashboard locked</div>'+
-      '<button id="blGo">👆 Fingerprint / Face se kholo</button><div class="bl-m" id="blMsg"></div>'+
-      '<button id="blPw" class="bl-pw">Password se login</button></div>';
-    document.body.appendChild(d);
-    const msg=t=>{const m=document.getElementById('blMsg');if(m)m.textContent=t;};
-    const go=()=>{msg('');bioVerify().then(()=>{d.remove();_bioP=null;res(true);}).catch(()=>msg('Nahi khula - dobara try karo'));};
-    d.querySelector('#blGo').onclick=go;
-    d.querySelector('#blPw').onclick=()=>{bioDisable();authLogout();};
-    setTimeout(go,250);
-  });
-  return _bioP;
-}
 async function authStart(){
   const s=_sess();
-  if(s&&s.expires_at&&Date.now()/1000<s.expires_at-120){_setSess(s);if(bioOn())await bioGate();document.getElementById('lockScreen').style.display='none';await loadAll();return;}
-  if(s&&await authRefresh()){if(bioOn())await bioGate();document.getElementById('lockScreen').style.display='none';await loadAll();return;}
+  if(s&&s.expires_at&&Date.now()/1000<s.expires_at-120){_setSess(s);document.getElementById('lockScreen').style.display='none';await loadAll();return;}
+  if(s&&await authRefresh()){document.getElementById('lockScreen').style.display='none';await loadAll();return;}
   authShowLock();
 }
 if(AUTH_MOB){
@@ -586,11 +532,7 @@ if(AUTH_MOB){
     setTimeout(()=>location.reload(),30);};
   const mark=()=>{try{sessionStorage.setItem('dash_last_seen',String(Date.now()));}catch(e){}};
   const lim=()=>{try{const v=localStorage.getItem('set_lockAfter');return v==null?0:+JSON.parse(v);}catch(e){return 0;}};
-  const check=()=>{const l=+(sessionStorage.getItem('dash_last_seen')||0);if(_sess()&&l&&Date.now()-l>lim()*1000+1500){
-    // Fingerprint lock on ho to logout nahi - data waisa hi, sirf fingerprint se kholo
-    // (6 Oct fix: app khulte waqt authOK abhi false hota he - tab bhi logout NAHI, authStart khud fingerprint maangega)
-    if(bioOn()){if(!authOK)return false;document.documentElement.classList.add('bg-hidden');bioGate().then(()=>{document.documentElement.classList.remove('bg-hidden');mark();});return true;}
-    hardLogout();return true;}return false;};
+  const check=()=>{const l=+(sessionStorage.getItem('dash_last_seen')||0);if(_sess()&&l&&Date.now()-l>lim()*1000+1500){hardLogout();return true;}return false;};
   if(check()){} 
   const hide=()=>{mark();document.documentElement.classList.add('bg-hidden');};
   const show=()=>{if(!check()){document.documentElement.classList.remove('bg-hidden');mark();}};
@@ -2370,8 +2312,7 @@ setInterval(loadAll,10*60*1000);
         row('🔠','Bade akshar','Padhne me aasaan',sw('bigText',P('bigText',false)))+
       '</div>'+
       '<div class="st-sec"><h3>🔒 Suraksha</h3>'+
-        row('👆','Fingerprint / Face lock',(typeof bioOn==='function'&&bioOn())?'On · app kholne par fingerprint':'Phone ke fingerprint / face se kholo','<button class="st-sw'+((typeof bioOn==='function'&&bioOn())?' on':'')+'" id="stBio" aria-label="toggle"></button>')+
-        row('⏳',(typeof bioOn==='function'&&bioOn())?'App se bahar jaane par lock':'App se bahar jaane par logout',(typeof bioOn==='function'&&bioOn())?'Itni der baad fingerprint maangega':'Itni der baad dobara login',seg('lockAfter',[[0,'Turant'],[60,'1 min'],[300,'5 min']],P('lockAfter',0)))+
+        row('⏳','App se bahar jaane par logout','Itni der baad dobara login',seg('lockAfter',[[0,'Turant'],[60,'1 min'],[300,'5 min']],P('lockAfter',0)))+
       '</div>'+
       '<div class="st-sec"><h3>🏁 Shuruaat</h3>'+
         row('📍','App khulte hi','Ye tab pehle khulega','<select class="st-sel" id="stTab">'+tabs.map(function(t){return '<option value="'+t[0]+'"'+(P('startTab','overview')===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select>')+
@@ -2408,16 +2349,6 @@ setInterval(loadAll,10*60*1000);
     if(ng&&!ng.querySelector('.set-btn')&&ng.children.length){var b=document.createElement('button');b.className='set-btn';b.innerHTML='<span class="gi">⚙️</span><span>Settings</span>';b.onclick=openSettings;ng.appendChild(b);}
     symbols();
   }
-  // Fingerprint / Face lock switch (6 Oct) - capture me, taaki generic st-sw handler na chale
-  document.addEventListener('click',function(e){
-    var b=e.target.closest&&e.target.closest('#stBio');if(!b)return;
-    e.stopPropagation();e.preventDefault();
-    if(typeof bioOn!=='function')return;
-    if(bioOn()){if(confirm('Fingerprint / Face lock band karna he?')){bioDisable();render();}return;}
-    b.disabled=true;
-    bioEnable().then(function(){render();alert('✓ Fingerprint / Face lock chalu. Ab app kholne par fingerprint maangega.');})
-      .catch(function(err){b.disabled=false;alert('Chalu nahi hua: '+((err&&err.name==='NotAllowedError')?'fingerprint cancel ho gaya':(err&&err.message)||err));});
-  },true);
   document.addEventListener('click',function(e){
     var t=e.target;if(!t.closest||!t.closest('#v-settings'))return;
     var sg=t.closest('.st-seg button');
