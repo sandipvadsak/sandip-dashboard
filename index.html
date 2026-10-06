@@ -586,7 +586,8 @@ if(AUTH_MOB){
   const lim=()=>{try{const v=localStorage.getItem('set_lockAfter');return v==null?0:+JSON.parse(v);}catch(e){return 0;}};
   const check=()=>{const l=+(sessionStorage.getItem('dash_last_seen')||0);if(_sess()&&l&&Date.now()-l>lim()*1000+1500){
     // Fingerprint lock on ho to logout nahi - data waisa hi, sirf fingerprint se kholo
-    if(bioOn()&&authOK){document.documentElement.classList.add('bg-hidden');bioGate().then(()=>{document.documentElement.classList.remove('bg-hidden');mark();});return true;}
+    // (6 Oct fix: app khulte waqt authOK abhi false hota he - tab bhi logout NAHI, authStart khud fingerprint maangega)
+    if(bioOn()){if(!authOK)return false;document.documentElement.classList.add('bg-hidden');bioGate().then(()=>{document.documentElement.classList.remove('bg-hidden');mark();});return true;}
     hardLogout();return true;}return false;};
   if(check()){} 
   const hide=()=>{mark();document.documentElement.classList.add('bg-hidden');};
