@@ -667,7 +667,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',compOos:'competitor_fba_oos?order=oos_since.desc&limit=500',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -730,6 +730,16 @@ function buildAlerts(){
     alerts.unshift({id:'acct_health_'+need.map(function(x){return x.account+x.metric+x.count;}).join('_'),level:'critical',
       title:'🛡️ '+need.length+' naye account health violation - submit karna baaki',
       body:need.slice(0,8).map(function(x){return x.account+' · '+x.label+' ('+x.count+')';}).join('\n')+(need.length>8?'\n+'+(need.length-8)+' aur':'')+'\nSeller Central → Account Health me appeal/document submit karke dashboard pe "✓ Submit kar diya" dabao'});
+  })();
+
+  // Hamari listing pe competitor ka FBA maal khatam (6 Oct) - har naye OOS pe nayi notification
+  (function(){
+    const cs=(D.compOos||[]).filter(x=>(Date.now()-new Date(x.oos_since))<48*3600000);
+    if(!cs.length)return;
+    alerts.push({id:'compoos_'+cs.map(x=>x.asin+x.seller_id+x.oos_since).sort().join('_').slice(0,180),level:'warning',
+      title:`🟢 ${cs.length} listing pe competitor ka FBA maal khatam — price / buy box ka mauka`,
+      body:cs.slice(0,6).map(x=>`${x.account} · ${x.vyapar_item||x.amazon_sku||x.asin}${+x.comp_fba_left===0?' · ab sirf hum FBA':''}`).join('<br>'),
+      tab:'overview'});
   })();
 
   
@@ -858,7 +868,8 @@ function notifTarget(id){
   if(id.startsWith('fba_'))return'fba_inbound';      // overdue FBA shipments
   if(id.startsWith('rem_'))return'fba_inbound';
   if(id.startsWith('inbshort_'))return'fba_inbound';  // closed shipment me kam maal
-  if(id.startsWith('acct_health_'))return'overview';  // account health      // removal nahi mila
+  if(id.startsWith('acct_health_'))return'overview';  // account health
+  if(id.startsWith('compoos_'))return'overview';  // competitor FBA khatam      // removal nahi mila
   if(id.startsWith('reorder_'))return'reorder';
   if(id.startsWith('nc_'))return'returns';           // FC missing units
   if(id.startsWith('strand_'))return'returns';       // stranded
@@ -945,6 +956,12 @@ function renderOverview(){
       ${ACCT?'':`<div class="kpi red" onclick="go('slow')" style="cursor:pointer" title="Slow Moving tab kholo"><div class="label">Capital Locked</div><div class="value neg">${inr(lockedCapital)}</div><div class="sub">${lockedItems} slow items</div></div>`}
       ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
     </div>
+    ${(()=>{const cs=(DATA.compOos||[]).filter(x=>!ACCT||x.account===ACCT);if(!cs.length)return'';
+      const ago=t=>{const h=Math.round((Date.now()-new Date(t))/3600000);return h<1?'abhi':h<24?h+' ghante pehle':Math.round(h/24)+' din pehle';};
+      return `<div class="card" style="border:2px solid var(--green,#16a34a)"><div class="card-head"><h2>🟢 Competitor ka FBA maal khatam — ${cs.length}</h2><span class="hint">hamari listing pe dusre seller ka FBA stock khatam · price/buy box ka mauka · har ghante check</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Account</th><th>SKU</th><th>Item</th><th>Competitor</th><th class="num">Unka price</th><th class="num">Baaki FBA competitor</th><th>Kab</th><th>Link</th></tr></thead><tbody>
+      ${cs.map(x=>`<tr><td><b>${x.account}</b></td><td>${x.amazon_sku||'—'}</td><td>${x.vyapar_item||'—'}</td><td><a href="https://www.amazon.in/sp?seller=${x.seller_id}" target="_blank" rel="noopener" style="color:var(--accent)">${x.seller_id}</a></td><td class="num">${x.price?inr(+x.price):'—'}</td><td class="num ${+x.comp_fba_left===0?'pos':''}">${+x.comp_fba_left===0?'0 — sirf hum':num(+x.comp_fba_left)}</td><td style="white-space:nowrap">${ago(x.oos_since)}</td><td><a href="https://www.amazon.in/dp/${x.asin}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;white-space:nowrap">${x.asin} ↗</a></td></tr>`).join('')}
+      </tbody></table></div></div>`;})()}
     ${renderHomework()}
     ${`<div class="card"><div class="card-head"><h2>Sales Trend — 30 days${acctNote}</h2><span class="hint">7 din: <b style="color:var(--accent)">${inr(rev7)}</b> · <b>${num([...d].slice(0,7).reduce((s,x)=>s+ +x.orders,0))}</b> orders &nbsp;|&nbsp; 30 din: <b style="color:var(--accent)">${inr(rev30)}</b> · <b>${num([...d].slice(0,30).reduce((s,x)=>s+ +x.orders,0))}</b> orders · hover = value</span></div>
       <div style="padding:18px 20px"><div class="spark">${spark.map(x=>`<div style="height:${(+x.net_revenue/maxS*100).toFixed(0)}%" title="${x.order_date}: ${inr(+x.net_revenue)} · ${num(+x.orders)} orders · ${num(+x.units)} units"></div>`).join('')}</div>
