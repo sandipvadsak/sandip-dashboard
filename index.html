@@ -494,6 +494,8 @@ const AUTH_MOB=matchMedia('(max-width:768px)').matches;
 // fingerprint se khule) - us session ki hifazat fingerprint gate karta he. OFF = pehle jaisa.
 const _bioSet=()=>{try{return !!localStorage.getItem('dash_bio_id');}catch(e){return false;}};
 const _st=()=>(AUTH_MOB&&!_bioSet())?sessionStorage:localStorage;
+// fingerprint ON par purana session sessionStorage me pada ho to localStorage me le aao
+try{if(_bioSet()&&!localStorage.getItem(AUTH_KEY)&&sessionStorage.getItem(AUTH_KEY)){localStorage.setItem(AUTH_KEY,sessionStorage.getItem(AUTH_KEY));sessionStorage.removeItem(AUTH_KEY);}}catch(e){}
 try{if(AUTH_MOB&&!_bioSet()){localStorage.removeItem(AUTH_KEY);if(!sessionStorage.getItem(AUTH_KEY))localStorage.removeItem('dash_cache');}}catch(e){}
 function _sess(){try{return JSON.parse(_st().getItem(AUTH_KEY)||'null');}catch(e){return null;}}
 function _setSess(s){try{_st().setItem(AUTH_KEY,JSON.stringify(s));}catch(e){} H.Authorization='Bearer '+s.access_token; authOK=true;}
