@@ -667,7 +667,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',compOos:'competitor_fba_oos?order=oos_since.desc&limit=500',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',compOos:'competitor_fba_oos?order=oos_since.desc&limit=500',compWatch:'competitor_fba_offers?select=account,asin,updated_at&status=eq.active&limit=5000',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -956,7 +956,9 @@ function renderOverview(){
       ${ACCT?'':`<div class="kpi red" onclick="go('slow')" style="cursor:pointer" title="Slow Moving tab kholo"><div class="label">Capital Locked</div><div class="value neg">${inr(lockedCapital)}</div><div class="sub">${lockedItems} slow items</div></div>`}
       ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
     </div>
-    ${(()=>{const cs=(DATA.compOos||[]).filter(x=>!ACCT||x.account===ACCT);if(!cs.length)return'';
+    ${(()=>{const cs=(DATA.compOos||[]).filter(x=>!ACCT||x.account===ACCT);
+      const wa=(DATA.compWatch||[]).filter(x=>!ACCT||x.account===ACCT),wl=new Set(wa.map(x=>x.account+x.asin)).size,lc=wa.map(x=>x.updated_at).sort().pop();
+      if(!cs.length)return `<div class="card"><div class="card-head"><h2>🟢 Competitor ka FBA maal khatam — 0</h2><span class="hint">abhi kisi competitor ka FBA khatam nahi · ${num(wl)} listing pe ${num(wa.length)} FBA competitor par nazar · aakhri check ${lc?new Date(lc).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'} · har ghante</span></div></div>`;
       const ago=t=>{const h=Math.round((Date.now()-new Date(t))/3600000);return h<1?'abhi':h<24?h+' ghante pehle':Math.round(h/24)+' din pehle';};
       return `<div class="card" style="border:2px solid var(--green,#16a34a)"><div class="card-head"><h2>🟢 Competitor ka FBA maal khatam — ${cs.length}</h2><span class="hint">hamari listing pe dusre seller ka FBA stock khatam · price/buy box ka mauka · har ghante check</span></div>
       <div class="table-scroll"><table><thead><tr><th>Account</th><th>SKU</th><th>Item</th><th>Competitor</th><th class="num">Unka price</th><th class="num">Baaki FBA competitor</th><th>Kab</th><th>Link</th></tr></thead><tbody>
