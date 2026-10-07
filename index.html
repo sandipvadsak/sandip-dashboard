@@ -680,7 +680,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',compOos:'competitor_fba_oos?order=oos_since.desc&limit=500',compWatch:'competitor_fba_offers?select=account,asin,updated_at&status=eq.active&limit=5000',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',compOos:'competitor_fba_oos?order=oos_since.desc&limit=500',compWatch:'competitor_fba_offers?select=account,asin,updated_at&status=eq.active&limit=5000',fbmRecv:'fbm_receiving_alert?order=first_seen.desc&limit=500',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -743,6 +743,14 @@ function buildAlerts(){
     alerts.unshift({id:'acct_health_'+need.map(function(x){return x.account+x.metric+x.count;}).join('_'),level:'critical',
       title:'🛡️ '+need.length+' naye account health violation - submit karna baaki',
       body:need.slice(0,8).map(function(x){return x.account+' · '+x.label+' ('+x.count+')';}).join('\n')+(need.length>8?'\n+'+(need.length-8)+' aur':'')+'\nSeller Central → Account Health me appeal/document submit karke dashboard pe "✓ Submit kar diya" dabao'});
+  })();
+
+  // FBA me maal receive hua par listing FBM pe (7 Oct) - convert karo
+  (function(){
+    const fr=D.fbmRecv||[];if(!fr.length)return;
+    alerts.push({id:'fbmrecv_'+fr.map(x=>x.account+x.amazon_sku).sort().join('_').slice(0,180),level:'critical',
+      title:`🔁 ${fr.length} SKU ka maal FBA me aa gaya par listing FBM pe — FBA me convert karo`,
+      body:fr.slice(0,8).map(x=>`${x.account} · ${x.amazon_sku} · ${x.qty_received} units FBA me (${x.shipment_id})`).join('<br>')});
   })();
 
   // Hamari listing pe competitor ka FBA maal khatam (6 Oct) - har naye OOS pe nayi notification
@@ -882,7 +890,8 @@ function notifTarget(id){
   if(id.startsWith('rem_'))return'fba_inbound';
   if(id.startsWith('inbshort_'))return'fba_inbound';  // closed shipment me kam maal
   if(id.startsWith('acct_health_'))return'overview';  // account health
-  if(id.startsWith('compoos_'))return'overview';  // competitor FBA khatam      // removal nahi mila
+  if(id.startsWith('compoos_'))return'overview';  // competitor FBA khatam
+  if(id.startsWith('fbmrecv_'))return'overview';  // FBA me maal, listing FBM      // removal nahi mila
   if(id.startsWith('reorder_'))return'reorder';
   if(id.startsWith('nc_'))return'returns';           // FC missing units
   if(id.startsWith('strand_'))return'returns';       // stranded
@@ -969,6 +978,11 @@ function renderOverview(){
       ${ACCT?'':`<div class="kpi red" onclick="go('slow')" style="cursor:pointer" title="Slow Moving tab kholo"><div class="label">Capital Locked</div><div class="value neg">${inr(lockedCapital)}</div><div class="sub">${lockedItems} slow items</div></div>`}
       ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
     </div>
+    ${(()=>{const fr=(DATA.fbmRecv||[]).filter(x=>!ACCT||x.account===ACCT);if(!fr.length)return'';
+      return `<div class="card" style="border:2px solid var(--red)"><div class="card-head"><h2>🔁 FBA me maal aaya par listing FBM pe — ${fr.length}</h2><span class="hint">Seller Central → Inventory → us SKU ko "Change to Fulfilled by Amazon" karo · har ghante check</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Account</th><th>SKU</th><th>Shipment</th><th>Status</th><th class="num">FBA me mila</th><th class="num">FBM qty</th><th>Kab se</th></tr></thead><tbody>
+      ${fr.map(x=>`<tr><td><b>${x.account}</b></td><td><b>${x.amazon_sku}</b></td><td>${x.shipment_id}</td><td>${x.shipment_status||''}</td><td class="num pos">${num(+x.qty_received)}/${num(+x.qty_shipped)}</td><td class="num">${x.fbm_qty==null?'—':num(+x.fbm_qty)}</td><td style="white-space:nowrap">${new Date(x.first_seen).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</td></tr>`).join('')}
+      </tbody></table></div></div>`;})()}
     ${(()=>{const cs=(DATA.compOos||[]).filter(x=>!ACCT||x.account===ACCT);
       const wa=(DATA.compWatch||[]).filter(x=>!ACCT||x.account===ACCT),wl=new Set(wa.map(x=>x.account+x.asin)).size,lc=wa.map(x=>x.updated_at).sort().pop();
       if(!cs.length)return `<div class="card"><div class="card-head"><h2>🟢 Competitor ka FBA maal khatam — 0</h2><span class="hint">abhi kisi competitor ka FBA khatam nahi · ${num(wl)} listing pe ${num(wa.length)} FBA competitor par nazar · aakhri check ${lc?new Date(lc).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'} · har ghante</span></div></div>`;
