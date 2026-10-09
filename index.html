@@ -311,6 +311,18 @@
   /* har box ka title (account naam) beech me - 6 Oct */
   #ahCard .ah-t th{text-align:center!important;}
   #ahCard .ah-t td:first-child{text-align:center!important;justify-content:center!important;}
+
+  @media(min-width:769px){
+    #sidePanel{position:fixed;left:0;top:var(--sideTop,120px);bottom:0;width:230px;overflow-y:auto;background:var(--panel);border-right:1px solid var(--border);padding:10px 8px 24px;z-index:8;scrollbar-width:thin;}
+    #sidePanel .sp-h{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;padding:6px 10px 8px;}
+    #sidePanel button{display:block;width:100%;text-align:left;border:none;background:none;color:var(--text);padding:9px 10px;margin:1px 0;border-radius:9px;font-size:13px;line-height:1.3;cursor:pointer;}
+    #sidePanel button:hover{background:var(--panel2);}
+    #sidePanel button.on{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-weight:700;box-shadow:inset 3px 0 0 var(--accent);}
+    #sidePanel button.sp-all{font-weight:700;border-bottom:1px solid var(--border);border-radius:9px 9px 0 0;margin-bottom:6px;}
+    html.has-side main{margin-left:230px;}
+    html.side-one main .view.active .side-u:not(.side-on){display:none!important;}
+  }
+  @media(max-width:768px){#sidePanel{display:none!important;}}
 nav#nav{position:sticky;top:var(--hdrH,0px);z-index:9;}
 /* account chips ek hi line me (P&L Accounts column) - 1 Oct */
 td:has(.acct-badge){white-space:nowrap!important;max-width:none!important;overflow:visible!important;}
@@ -2576,6 +2588,54 @@ setInterval(loadAll,10*60*1000);
     try{var v=document.getElementById('v-overview'),old=document.getElementById('ahCard');if(old)old.remove();var c=card();
       if(v&&c){v.prepend(c);}}  /* 9 Oct owner: Account Health hamesha sabse upar */catch(e){}
     return r;};}
+})();
+</script>
+<script>
+// PC side panel (9 Oct): active tab ke har box ka naam left me; click = sirf wo box. "Sab dikhao" = pehle jaisa.
+(function(){
+  var PC=matchMedia('(min-width:769px)'),sp=null,busy=false,t=0;
+  function title(el){
+    if(el.classList.contains('kpis'))return '📊 Summary (KPI)';
+    var h=el.querySelector(':scope>.card-head h2')||el.querySelector('h2,h3');
+    var s=h?h.textContent.trim():(el.textContent||'').trim().slice(0,40);
+    return s||'Box';
+  }
+  function key(s){return s.replace(/\s*[—-]\s*[\d,.]+.*$/,'').replace(/\(\d+\)/g,'').trim();}
+  function units(v){
+    return [].filter.call(v.querySelectorAll('.card,.kpis'),function(el){
+      return el.offsetParent!==null||el.classList.contains('side-u')?!el.parentElement.closest('.card'):!el.parentElement.closest('.card');
+    }).filter(function(el){return !el.parentElement.closest('.card');});
+  }
+  function store(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
+  function load(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+  function top(){var n=document.getElementById('nav');var b=n?n.getBoundingClientRect().bottom:120;document.documentElement.style.setProperty('--sideTop',Math.max(0,b)+'px');}
+  function build(){
+    if(busy)return;busy=true;
+    try{
+      var de=document.documentElement,v=document.querySelector('main .view.active');
+      if(!PC.matches||!v||document.documentElement.classList.contains('locked')){if(sp)sp.style.display='none';de.classList.remove('has-side','side-one');return;}
+      var us=units(v);
+      if(us.length<2){if(sp)sp.style.display='none';de.classList.remove('has-side','side-one');us.forEach(function(u){u.classList.remove('side-u','side-on');});return;}
+      if(!sp){sp=document.createElement('aside');sp.id='sidePanel';document.body.appendChild(sp);
+        sp.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var vv=document.querySelector('main .view.active');if(!vv)return;
+          store('side_sel_'+vv.id,b.dataset.k==='__all'?null:b.dataset.k);build();window.scrollTo({top:0,behavior:'smooth'});});}
+      sp.style.display='';de.classList.add('has-side');top();
+      var sel=load('side_sel_'+v.id),found=false,html='<div class="sp-h">Is tab ke box</div><button class="sp-all'+(sel?'':' on')+'" data-k="__all">📋 Sab dikhao</button>';
+      us.forEach(function(u){var tl=title(u),k=key(tl);u.classList.add('side-u');
+        var on=sel&&k===sel;if(on){found=true;u.classList.add('side-on');u.classList.remove('acc-closed');}else u.classList.remove('side-on');
+        html+='<button data-k="'+k.replace(/"/g,'&quot;')+'"'+(on?' class="on"':'')+'>'+tl.replace(/</g,'&lt;')+'</button>';});
+      if(sel&&!found){store('side_sel_'+v.id,null);html=html.replace('class="sp-all"','class="sp-all on"');}
+      de.classList.toggle('side-one',!!(sel&&found));
+      if(sp.innerHTML!==html)sp.innerHTML=html;
+    }finally{busy=false;}
+  }
+  function soon(){clearTimeout(t);t=setTimeout(build,120);}
+  new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){if(!(sp&&sp.contains(ms[i].target))){soon();return;}}})
+    .observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#nav'))soon();});
+  addEventListener('scroll',function(){if(sp&&sp.style.display!=='none')top();},{passive:true});
+  addEventListener('resize',soon);(PC.addEventListener?PC.addEventListener('change',soon):0);
+  soon();
 })();
 </script>
 <script>
