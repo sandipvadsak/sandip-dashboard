@@ -2574,7 +2574,7 @@ setInterval(loadAll,10*60*1000);
   setInterval(function(){try{banner();}catch(e){}},3000);
   if(typeof renderOverview==='function'){var _ro=renderOverview;renderOverview=function(){var r=_ro.apply(this,arguments);
     try{var v=document.getElementById('v-overview'),old=document.getElementById('ahCard');if(old)old.remove();var c=card();
-      if(v&&c){var k=v.querySelector('.kpis');if(c.classList.contains('ah-alert')||!k)v.prepend(c);else k.after(c);}}catch(e){}
+      if(v&&c){v.prepend(c);}}  /* 9 Oct owner: Account Health hamesha sabse upar */catch(e){}
     return r;};}
 })();
 </script>
