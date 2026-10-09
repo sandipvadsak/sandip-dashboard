@@ -2734,6 +2734,8 @@ setInterval(loadAll,10*60*1000);
   mo.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   addEventListener('scroll',function(){if(sp&&sp.style.display!=='none')top();},{passive:true});
   addEventListener('resize',soon);(PC.addEventListener?PC.addEventListener('change',soon):0);
+  // 9 Oct (owner): upar Overview/Paisa/Stock/Sales dabao = panel ka chuna hua box hatao, us tab ka poora page
+  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#navGroups button')){sel=null;soon();}},true);
   soon();
 })();
 </script>
