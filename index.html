@@ -347,7 +347,7 @@
     #sidePanel .sp-tg{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:9px;width:34px;height:32px;font-size:16px;}
     #spBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:390;display:none;}
     html.sp-open #spBackdrop{display:block;}
-    #spFab{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:160;width:50px;height:50px;border-radius:50%;
+    #spFab{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:180;visibility:visible!important;width:50px;height:50px;border-radius:50%;
       border:none;color:#fff;font-size:22px;cursor:pointer;background:linear-gradient(180deg,#3b82f6,#1d4ed8);
       box-shadow:0 4px 0 #1e3a8a,0 8px 18px rgba(0,0,0,.28);}
     #spFab:active{transform:translateY(3px);box-shadow:0 1px 0 #1e3a8a,0 3px 8px rgba(0,0,0,.25);}
@@ -2802,7 +2802,7 @@ setInterval(loadAll,10*60*1000);
       if(selView!==v.id){sel=null;selView=v.id;}          // tab badla = poora page
       var subs=[].slice.call(document.querySelectorAll('#navTabs button'));
       var us=units(v);
-      if(subs.length<2&&us.length<2){off();us.forEach(function(u){u.classList.remove('side-u','side-on');});return;}
+      if(subs.length<2&&us.length<(PC.matches?2:1)){off();  /* mobile: 1 box pe bhi ☰ dikhe (9 Oct fix) */us.forEach(function(u){u.classList.remove('side-u','side-on');});return;}
       if(!sp){sp=document.createElement('aside');sp.id='sidePanel';document.body.appendChild(sp);
         sp.addEventListener('click',function(e){
           var b=e.target.closest('button');if(!b)return;
@@ -2845,6 +2845,8 @@ setInterval(loadAll,10*60*1000);
   addEventListener('resize',soon);(PC.addEventListener?PC.addEventListener('change',soon):0);
   // 9 Oct (owner): upar Overview/Paisa/Stock/Sales dabao = panel ka chuna hua box hatao, us tab ka poora page
   document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#navGroups button')){sel=null;shut=null;soon();}},true);
+  // 9 Oct fix: mobile pe ☰ kabhi kabhi gayab - data load ke beech koi badlav chhoot jaaye to bhi har 2 sec dobara jaancho
+  setInterval(function(){if(!PC.matches&&!document.hidden)build();},2000);
   soon();
 })();
 </script>
