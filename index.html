@@ -388,6 +388,15 @@
   #acctLegend .lg.acct-badge:hover{transform:translateY(-1px);}
   #acctLegend .lg.acct-badge:active{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--ac) 55%,#000),0 2px 4px rgba(0,0,0,.2)!important;}
   #acctLegend{padding-bottom:16px!important;}
+  /* 9 Oct v2 (owner): Accounts row - upar/neeche barabar jagah, chip row ke bilkul beech */
+  html body #acctLegend{align-items:center!important;padding-top:12px!important;padding-bottom:12px!important;}
+  html body #acctLegend .lg.acct-badge{margin:0!important;}
+  @media(max-width:768px){
+    html body #acctLegend{flex-wrap:wrap!important;justify-content:center!important;overflow:visible!important;
+      gap:8px 7px!important;padding:10px 10px!important;}
+    html body #acctLegend .lgl{display:none!important;}  /* mobile: 'Accounts:' label nahi - jagah bache, 2 line me sab chip */
+    html body #acctLegend .lg.acct-badge{font-size:11.5px!important;padding:5px 10px!important;}
+  }
   /* 9 Oct (owner): account chip ki row beech me + chip bade (PC) */
   @media(min-width:769px){
     #acctLegend{justify-content:center!important;gap:10px!important;padding-top:14px!important;}
