@@ -2631,7 +2631,10 @@ setInterval(loadAll,10*60*1000);
   });
   addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;});
   // start preferences - pehli baar data aane par ek hi baar
-  var applied=false;
+  // 9 Oct (owner): RELOAD par wahi tab rahe (go() active_tab se khud kholta he). "App khulte hi" wala
+  // start-tab/account sirf app NAYE khulne par - is browser-session me pehle se khula ho = reload, skip.
+  var isReload=false;try{isReload=sessionStorage.getItem('app_opened')==='1';sessionStorage.setItem('app_opened','1');}catch(e){}
+  var applied=isReload;
   function applyStart(){
     if(applied||!M.matches||typeof DATA==='undefined'||!Object.keys(DATA).length)return;applied=true;
     var a=P('startAcct','');var f=document.getElementById('acctFilter');
