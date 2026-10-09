@@ -481,6 +481,8 @@
     html body #nav #navGroups button.active{color:#fff!important;background:var(--c)!important;
       box-shadow:0 2px 6px color-mix(in srgb,var(--c) 45%,transparent)!important;}
     html body main{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;}
+    /* 9 Oct (owner): scroll pe Accounts wali patti bilkul upar chipki rahe (header mobile pe scroll ho jaata he) */
+    html body nav#nav{position:sticky!important;top:0!important;z-index:120!important;padding-top:env(safe-area-inset-top)!important;}
     html body header h1{text-align:center!important;width:100%;}  /* Amazon Business beech me (owner) */
   }
 nav#nav{position:sticky;top:var(--hdrH,0px);z-index:9;}
