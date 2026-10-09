@@ -337,6 +337,30 @@
   }
   @media(max-width:768px){#sidePanel{display:none!important;}}
 
+  html body main .card{border-radius:16px!important;
+    box-shadow:0 5px 0 color-mix(in srgb,var(--blue) 22%,var(--border)),0 12px 24px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.6)!important;
+    margin-bottom:22px!important;}
+  html body main .kpis .kpi{border-radius:14px!important;
+    box-shadow:0 4px 0 color-mix(in srgb,var(--blue) 22%,var(--border)),0 9px 18px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.6)!important;}
+  html body main .card>.card-head h2{
+    text-shadow:0 1px 0 color-mix(in srgb,currentColor 55%,#000),0 2px 0 color-mix(in srgb,currentColor 45%,#000),
+                0 3px 0 color-mix(in srgb,currentColor 35%,#000),0 4px 6px rgba(0,0,0,.28)!important;}
+  html body main .kpis .kpi .value{text-shadow:0 1px 0 rgba(0,0,0,.18),0 2px 0 rgba(0,0,0,.12),0 3px 5px rgba(0,0,0,.22);}
+  .acct-badge{
+    background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 70%,#fff) 0%,var(--ac) 55%,color-mix(in srgb,var(--ac) 82%,#000) 100%)!important;
+    border:1px solid color-mix(in srgb,var(--ac) 70%,#000)!important;
+    box-shadow:0 3px 0 color-mix(in srgb,var(--ac) 55%,#000),0 5px 9px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.55)!important;
+    text-shadow:0 1px 0 rgba(0,0,0,.4),0 2px 2px rgba(0,0,0,.25);
+    margin-bottom:4px;transition:transform .08s,box-shadow .08s;}
+  .acct-badge[data-acct="PIVDO"]{text-shadow:0 1px 0 rgba(255,255,255,.6);}
+  #acctLegend .lg.acct-badge:hover{transform:translateY(-1px);}
+  #acctLegend .lg.acct-badge:active{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--ac) 55%,#000),0 2px 4px rgba(0,0,0,.2)!important;}
+  #acctLegend{padding-bottom:16px!important;}
+  html[data-theme="dark"] body main .card,html[data-theme="dark"] body main .kpis .kpi{
+    box-shadow:0 5px 0 rgba(0,0,0,.55),0 12px 24px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)!important;}
+  html[data-theme="dark"] body main .card>.card-head h2{text-shadow:0 1px 0 rgba(0,0,0,.6),0 2px 0 rgba(0,0,0,.5),0 3px 0 rgba(0,0,0,.4),0 4px 6px rgba(0,0,0,.6)!important;}
+  @media(max-width:768px){html body main .card{box-shadow:0 4px 0 color-mix(in srgb,var(--blue) 20%,var(--border)),0 8px 16px rgba(0,0,0,.10)!important;margin-bottom:16px!important;}}
+
   @media(min-width:769px){
     /* har option alag rang - 8 rang ghoom ke */
     #sidePanel button.sp-sec,#sidePanel button.sp-box{--c:#2563eb;}
