@@ -114,6 +114,7 @@
   main .card>.card-head::after{content:'▴';position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:14px;}
   main .card.acc-closed>.card-head::after{content:'▾';}
   main .card.acc-closed>.card-head{border-bottom:none!important;}
+  @media(min-width:769px){main .card>.card-head{cursor:default;}main .card>.card-head::after{display:none!important;}}
   #navTabs:has(>button:only-child){display:none!important;}
   #toTop{display:none;}
   .spark>div.sel,.hero-spark>i.sel{opacity:1!important;outline:2px solid var(--text);}
@@ -2314,17 +2315,19 @@ setInterval(loadAll,10*60*1000);
   addEventListener('scroll',function(){up.classList.toggle('show',M.matches&&scrollY>700);},{passive:true});
   // Har box dropdown (24 Sep): header tap = khol/band. Default band; jo khola wo yaad rehta he.
   var OPEN={};try{OPEN=JSON.parse(localStorage.getItem('dash_open_cards')||'{}');}catch(e){}
+  // 9 Oct (owner): PC pe box band/khula wala option nahi - hamesha full view. Mobile pe pehle jaisa.
+  var PCV=matchMedia('(min-width:769px)');
   function ckey(card){var h=card.querySelector(':scope>.card-head h2');return h?h.textContent.replace(/\s*[—-].*$/,'').replace(/\(.*?\)/g,'').trim():'';}
   function accordion(){
     document.querySelectorAll('main .view .card').forEach(function(c){
       var hd=c.querySelector(':scope>.card-head');if(!hd||c.dataset.acc)return;c.dataset.acc=1;
-      var k=ckey(c),dflt=window.__setP&&__setP('boxOpen',false);c.classList.toggle('acc-closed',!dflt&&!OPEN[k]);
+      var k=ckey(c),dflt=window.__setP&&__setP('boxOpen',false);c.classList.toggle('acc-closed',!PCV.matches&&!dflt&&!OPEN[k]);  // PC = hamesha full view (9 Oct)
     });
   }
   window.__openCard=function(c){c.classList.remove('acc-closed');OPEN[ckey(c)]=1;try{localStorage.setItem('dash_open_cards',JSON.stringify(OPEN));}catch(e){}};
   document.addEventListener('click',function(e){
     if(!e.target.closest)return;
-    var hd=e.target.closest('main .card>.card-head');if(!hd||e.target.closest('button,input,select,a'))return;
+    var hd=e.target.closest('main .card>.card-head');if(!hd||e.target.closest('button,input,select,a')||PCV.matches)return;
     var c=hd.parentNode,k=ckey(c),closed=c.classList.toggle('acc-closed');
     if(closed)delete OPEN[k];else OPEN[k]=1;try{localStorage.setItem('dash_open_cards',JSON.stringify(OPEN));}catch(e){}
   });
@@ -2621,6 +2624,7 @@ setInterval(loadAll,10*60*1000);
     if(busy)return;busy=true;
     try{
       var de=document.documentElement,v=document.querySelector('main .view.active');
+      if(PC.matches)document.querySelectorAll('main .card.acc-closed').forEach(function(c){c.classList.remove('acc-closed');});  // PC = sirf full view
       if(!PC.matches||!v||de.classList.contains('locked')||v.id==='v-settings'){off();return;}
       if(selView!==v.id){sel=null;selView=v.id;}          // tab badla = poora page
       var subs=[].slice.call(document.querySelectorAll('#navTabs button'));
