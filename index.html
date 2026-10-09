@@ -1174,7 +1174,8 @@ function renderOverview(){
       ${ACCT?'':`<div class="kpi red" onclick="go('slow')" style="cursor:pointer" title="Slow Moving tab kholo"><div class="label">Capital Locked</div><div class="value neg">${inr(lockedCapital)}</div><div class="sub">${lockedItems} slow items</div></div>`}
       ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
     </div>
-    ${(()=>{const fr=(DATA.fbmRecv||[]).filter(x=>!ACCT||x.account===ACCT);if(!fr.length)return'';
+    ${(()=>{const fr=(DATA.fbmRecv||[]).filter(x=>!ACCT||x.account===ACCT);
+      if(!fr.length)return `<div class="card"><div class="card-head"><h2>🔁 FBA me maal aaya par listing FBM pe — 0</h2><span class="hint">abhi koi nahi · har account ki receiving shipment har ghante check hoti he · maal aate hi listing FBM pe hui to yahan dikhegi</span></div></div>`;
       return `<div class="card" style="border:2px solid var(--red)"><div class="card-head"><h2>🔁 FBA me maal aaya par listing FBM pe — ${fr.length}</h2><span class="hint">Seller Central → Inventory → us SKU ko "Change to Fulfilled by Amazon" karo · har ghante check</span></div>
       <div class="table-scroll"><table><thead><tr><th>Account</th><th>SKU</th><th>Shipment</th><th>Status</th><th class="num">FBA me mila</th><th class="num">FBM qty</th><th>Kab se</th></tr></thead><tbody>
       ${fr.map(x=>`<tr><td><b>${x.account}</b></td><td><b>${x.amazon_sku}</b></td><td>${x.shipment_id}</td><td>${x.shipment_status||''}</td><td class="num pos">${num(+x.qty_received)}/${num(+x.qty_shipped)}</td><td class="num">${x.fbm_qty==null?'—':num(+x.fbm_qty)}</td><td style="white-space:nowrap">${new Date(x.first_seen).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</td></tr>`).join('')}
