@@ -2731,7 +2731,9 @@ setInterval(loadAll,10*60*1000);
     return (h?h.textContent.trim():(el.textContent||'').trim().slice(0,40))||'Box';
   }
   function key(s){return s.replace(/\s*[—-]\s*[\d,.]+.*$/,'').replace(/\(\d+\)/g,'').trim();}
-  function units(v){return [].filter.call(v.querySelectorAll('.card,.kpis'),function(el){return !el.parentElement.closest('.card');});}
+  // 9 Oct (owner): "Sales Trend" ka alag option nahi - wo Summary (KPI) ke saath dikhta he
+  function joinKpi(el){var h=el.querySelector(':scope>.card-head h2');return !!h&&/^\s*Sales Trend/.test(h.textContent);}
+  function units(v){return [].filter.call(v.querySelectorAll('.card,.kpis'),function(el){return !el.parentElement.closest('.card')&&!joinKpi(el);});}
   function top(){var n=document.getElementById('nav');var b=n?n.getBoundingClientRect().bottom:120;document.documentElement.style.setProperty('--sideTop',Math.max(0,b)+'px');}
   function off(){var de=document.documentElement;if(sp)sp.style.display='none';de.classList.remove('has-side','side-one','sp-mini');}
   function build(){
@@ -2762,6 +2764,9 @@ setInterval(loadAll,10*60*1000);
         var on=!!sel&&k===sel;if(on){found=true;u.classList.add('side-on');u.classList.remove('acc-closed');}else u.classList.remove('side-on');
         boxes+='<button class="sp-box'+(on?' on':'')+'" data-k="'+esc(k)+'">'+esc(tl)+'</button>';});
       if(sel&&!found)sel=null;
+      // Sales Trend: Summary (KPI) chuna ho to uske saath dikhe, kuch aur chuna ho to chhupe
+      var kpiSel=sel===key('📊 Summary (KPI)');
+      [].forEach.call(v.querySelectorAll('.card'),function(c){if(!joinKpi(c))return;c.classList.add('side-u');c.classList.toggle('side-on',kpiSel);if(kpiSel)c.classList.remove('acc-closed');});
       de.classList.toggle('side-one',!!sel);
       var g=document.querySelector('#navGroups button.active');
       var html='<div class="sp-top"><b>'+esc(g?g.textContent.trim():'Menu')+'</b><button class="sp-tg" title="'+(closed?'Panel kholo':'Panel band karo')+'">'+(closed?'»':'«')+'</button></div>';
