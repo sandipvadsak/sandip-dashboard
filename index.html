@@ -334,8 +334,40 @@
     html.has-side.sp-mini main{margin-left:46px;}
     html.has-side #navTabs{display:none!important;}
     html.side-one main .view.active .side-u:not(.side-on){display:none!important;}
+    #spFab,#spBackdrop{display:none!important;}
   }
-  @media(max-width:768px){#sidePanel{display:none!important;}}
+  /* Mobile (9 Oct, owner): left panel = baayen se khulne wala drawer, ☰ button se */
+  @media(max-width:768px){
+    #sidePanel{position:fixed;top:0;bottom:0;left:0;width:84vw;max-width:330px;overflow-y:auto;z-index:400;
+      background:var(--panel);border-right:1px solid var(--border);box-shadow:8px 0 30px rgba(0,0,0,.25);
+      padding:calc(14px + env(safe-area-inset-top)) 12px 90px;transform:translateX(-105%);transition:transform .22s ease;}
+    html.sp-open #sidePanel{transform:none;}
+    #sidePanel .sp-top{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 10px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+    #sidePanel .sp-top b{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+    #sidePanel .sp-tg{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:9px;width:34px;height:32px;font-size:16px;}
+    #spBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:390;display:none;}
+    html.sp-open #spBackdrop{display:block;}
+    #spFab{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:160;width:50px;height:50px;border-radius:50%;
+      border:none;color:#fff;font-size:22px;cursor:pointer;background:linear-gradient(180deg,#3b82f6,#1d4ed8);
+      box-shadow:0 4px 0 #1e3a8a,0 8px 18px rgba(0,0,0,.28);}
+    #spFab:active{transform:translateY(3px);box-shadow:0 1px 0 #1e3a8a,0 3px 8px rgba(0,0,0,.25);}
+    html.side-one main .view.active .side-u:not(.side-on){display:none!important;}
+    /* panel ke option mobile pe bhi rang-birange 3D box */
+    #sidePanel .sp-sec,#sidePanel .sp-box{--c:#2563eb;display:block;width:100%;text-align:left;margin:0 0 10px;padding:11px 12px;border-radius:12px;
+      font-size:15px;font-weight:700;line-height:1.35;cursor:pointer;color:color-mix(in srgb,var(--c) 62%,#000);
+      background:linear-gradient(180deg,color-mix(in srgb,var(--c) 14%,#fff),color-mix(in srgb,var(--c) 26%,#fff));
+      border:1px solid color-mix(in srgb,var(--c) 45%,transparent);
+      box-shadow:0 4px 0 color-mix(in srgb,var(--c) 55%,#000),0 7px 14px rgba(0,0,0,.12);}
+    #sidePanel button:nth-of-type(8n+2){--c:#16a34a;}#sidePanel button:nth-of-type(8n+3){--c:#ea580c;}
+    #sidePanel button:nth-of-type(8n+4){--c:#9333ea;}#sidePanel button:nth-of-type(8n+5){--c:#dc2626;}
+    #sidePanel button:nth-of-type(8n+6){--c:#0891b2;}#sidePanel button:nth-of-type(8n+7){--c:#ca8a04;}
+    #sidePanel button:nth-of-type(8n+8){--c:#db2777;}
+    #sidePanel .sp-box.on,#sidePanel .sp-sec.cur{color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 85%,#fff),var(--c));}
+    #sidePanel .sp-kids{margin:2px 0 12px 14px;padding-left:10px;border-left:2px dashed var(--border);}
+    #sidePanel .sp-kids .sp-box{font-size:13.5px;padding:8px 10px;box-shadow:0 2px 0 color-mix(in srgb,var(--c) 45%,#000),0 3px 6px rgba(0,0,0,.1);}
+    html:not([data-theme="light"]) #sidePanel .sp-sec:not(.cur),html:not([data-theme="light"]) #sidePanel .sp-box:not(.on){
+      color:color-mix(in srgb,var(--c) 35%,#fff);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,#111),color-mix(in srgb,var(--c) 12%,#0b0f17));}
+  }
 
   html body main .card{border-radius:16px!important;
     box-shadow:0 5px 0 color-mix(in srgb,var(--blue) 22%,var(--border)),0 12px 24px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.6)!important;
@@ -436,9 +468,10 @@
     html body header{border-bottom:none!important;box-shadow:none!important;
       background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--blue) 5%,var(--panel)))!important;}
     html body #nav{background:color-mix(in srgb,var(--blue) 5%,var(--panel))!important;box-shadow:0 6px 16px rgba(0,0,0,.08)!important;}
-    html body #nav #navGroups{position:static!important;display:grid!important;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px!important;
-      width:auto!important;margin:4px 10px 8px!important;padding:4px!important;border-radius:14px!important;z-index:auto!important;
-      background:var(--panel)!important;border:1px solid var(--border)!important;box-shadow:0 2px 8px rgba(0,0,0,.08)!important;}
+    html body #nav #navGroups{position:fixed!important;left:10px!important;right:10px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;top:auto!important;
+      display:grid!important;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px!important;
+      width:auto!important;margin:0!important;padding:5px!important;border-radius:18px!important;z-index:150!important;
+      background:var(--panel)!important;border:1px solid var(--border)!important;box-shadow:0 -2px 10px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.18)!important;}
     html body #nav #navGroups button{flex-direction:column!important;gap:2px!important;min-width:0!important;padding:6px 2px!important;
       font-size:11.5px!important;font-weight:700!important;border-radius:10px!important;color:var(--text2)!important;background:transparent!important;box-shadow:none!important;}
     html body #nav #navGroups button{--c:#2563eb;}html body #nav #navGroups button:nth-child(2){--c:#16a34a;}
@@ -447,7 +480,8 @@
     html body #nav #navGroups button .gi{font-size:18px!important;filter:none!important;opacity:1!important;}
     html body #nav #navGroups button.active{color:#fff!important;background:var(--c)!important;
       box-shadow:0 2px 6px color-mix(in srgb,var(--c) 45%,transparent)!important;}
-    html body main{padding-bottom:28px!important;}
+    html body main{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;}
+    html body header h1{text-align:center!important;width:100%;}  /* Amazon Business beech me (owner) */
   }
 nav#nav{position:sticky;top:var(--hdrH,0px);z-index:9;}
 /* account chips ek hi line me (P&L Accounts column) - 1 Oct */
@@ -2735,13 +2769,23 @@ setInterval(loadAll,10*60*1000);
   function joinKpi(el){var h=el.querySelector(':scope>.card-head h2');return !!h&&/^\s*Sales Trend/.test(h.textContent);}
   function units(v){return [].filter.call(v.querySelectorAll('.card,.kpis'),function(el){return !el.parentElement.closest('.card')&&!joinKpi(el);});}
   function top(){var n=document.getElementById('nav');var b=n?n.getBoundingClientRect().bottom:120;document.documentElement.style.setProperty('--sideTop',Math.max(0,b)+'px');}
-  function off(){var de=document.documentElement;if(sp)sp.style.display='none';de.classList.remove('has-side','side-one','sp-mini');}
+  function off(){var de=document.documentElement;if(sp)sp.style.display='none';de.classList.remove('has-side','side-one','sp-mini','sp-open');
+    var f=document.getElementById('spFab');if(f)f.style.display='none';}
+  // Mobile drawer (9 Oct): ☰ button + peechhe ka parda; option chuno = drawer band
+  function drawer(on){document.documentElement.classList.toggle('sp-open',!!on);}
+  function mobileUi(){
+    var f=document.getElementById('spFab');
+    if(!f){f=document.createElement('button');f.id='spFab';f.type='button';f.title='Box list';f.textContent='☰';
+      f.onclick=function(){drawer(!document.documentElement.classList.contains('sp-open'));};document.body.appendChild(f);
+      var bd=document.createElement('div');bd.id='spBackdrop';bd.onclick=function(){drawer(false);};document.body.appendChild(bd);}
+    f.style.display='';
+  }
   function build(){
     if(busy)return;busy=true;
     try{
       var de=document.documentElement,v=document.querySelector('main .view.active');
       if(PC.matches)document.querySelectorAll('main .card.acc-closed').forEach(function(c){c.classList.remove('acc-closed');});  // PC = sirf full view
-      if(!PC.matches||!v||de.classList.contains('locked')||v.id==='v-settings'){off();return;}
+      if(!v||de.classList.contains('locked')||v.id==='v-settings'){off();return;}  // mobile pe bhi (drawer)
       if(selView!==v.id){sel=null;selView=v.id;}          // tab badla = poora page
       var subs=[].slice.call(document.querySelectorAll('#navTabs button'));
       var us=units(v);
@@ -2749,14 +2793,15 @@ setInterval(loadAll,10*60*1000);
       if(!sp){sp=document.createElement('aside');sp.id='sidePanel';document.body.appendChild(sp);
         sp.addEventListener('click',function(e){
           var b=e.target.closest('button');if(!b)return;
-          if(b.classList.contains('sp-tg')){var c=!sp.classList.contains('sp-closed');store('side_closed',c?'1':null);build();return;}
+          if(b.classList.contains('sp-tg')){if(!PC.matches){drawer(false);return;}var c=!sp.classList.contains('sp-closed');store('side_closed',c?'1':null);build();return;}
           if(b.classList.contains('sp-sec')){var i=+b.dataset.i,nb=document.querySelectorAll('#navTabs button')[i];
             var vv=document.querySelector('main .view.active');
             if(nb&&!nb.classList.contains('active')){sel=null;shut=null;nb.click();}
             else{sel=null;shut=(vv&&shut!==vv.id)?vv.id:null;build();}window.scrollTo({top:0});return;}
-          if(b.classList.contains('sp-box')){sel=(sel===b.dataset.k)?null:b.dataset.k;build();window.scrollTo({top:0,behavior:'smooth'});}
+          if(b.classList.contains('sp-box')){sel=(sel===b.dataset.k)?null:b.dataset.k;build();window.scrollTo({top:0,behavior:'smooth'});if(!PC.matches)drawer(false);}
         });}
-      var closed=load('side_closed')==='1';
+      var closed=PC.matches&&load('side_closed')==='1';  // band/khula sirf PC pe; mobile = drawer
+      if(!PC.matches)mobileUi();
       sp.classList.toggle('sp-closed',closed);de.classList.toggle('sp-mini',closed);
       sp.style.display='';de.classList.add('has-side');top();
       var found=false,boxes='';
@@ -2769,7 +2814,7 @@ setInterval(loadAll,10*60*1000);
       [].forEach.call(v.querySelectorAll('.card'),function(c){if(!joinKpi(c))return;c.classList.add('side-u');c.classList.toggle('side-on',kpiSel);if(kpiSel)c.classList.remove('acc-closed');});
       de.classList.toggle('side-one',!!sel);
       var g=document.querySelector('#navGroups button.active');
-      var html='<div class="sp-top"><b>'+esc(g?g.textContent.trim():'Menu')+'</b><button class="sp-tg" title="'+(closed?'Panel kholo':'Panel band karo')+'">'+(closed?'»':'«')+'</button></div>';
+      var html='<div class="sp-top"><b>'+esc(g?g.textContent.trim():'Menu')+'</b><button class="sp-tg" title="'+(closed?'Panel kholo':'Panel band karo')+'">'+(!PC.matches?'✕':(closed?'»':'«'))+'</button></div>';
       if(subs.length>=2){subs.forEach(function(nb,i){var cur=nb.classList.contains('active');
         var shutNow=cur&&shut===v.id;  // khula sub-tab dobara dabaya = andar ke box band
         html+='<button class="sp-sec'+(cur?' cur':'')+(shutNow?' shut':'')+'" data-i="'+i+'">'+esc(nb.textContent.trim())+'</button>'+(cur&&!shutNow?'<div class="sp-kids">'+boxes+'</div>':'');});}
