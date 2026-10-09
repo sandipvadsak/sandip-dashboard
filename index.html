@@ -2796,7 +2796,13 @@ setInterval(loadAll,10*60*1000);
   function title(el){
     if(el.classList.contains('kpis'))return '📊 Summary (KPI)';
     var h=el.querySelector(':scope>.card-head h2')||el.querySelector('h2,h3');
-    return (h?h.textContent.trim():(el.textContent||'').trim().slice(0,40))||'Box';
+    if(h)return h.textContent.trim()||'Box';
+    // 9 Oct fix (owner): bina heading wala box (jaise Reorder ki poori list) - filter buttons ka text naam nahi bane
+    var st=document.querySelector('#navTabs button.active'),gp=document.querySelector('#navGroups button.active');
+    var nm=((st&&st.textContent)||(gp&&gp.textContent)||'').replace(/^[^A-Za-z0-9]+/,'').trim()||'List';
+    if(el.querySelector('table,.tcards,.controls,input,select'))return '📋 '+nm+' — list';
+    var tx=(el.textContent||'').replace(/\s+/g,' ').trim();
+    return 'ℹ️ '+(tx.length>28?tx.slice(0,28)+'…':tx||'Note');
   }
   function key(s){return s.replace(/\s*[—-]\s*[\d,.]+.*$/,'').replace(/\(\d+\)/g,'').trim();}
   // 9 Oct (owner): "Sales Trend" ka alag option nahi - wo Summary (KPI) ke saath dikhta he
