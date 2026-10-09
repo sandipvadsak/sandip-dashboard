@@ -313,13 +313,25 @@
   #ahCard .ah-t td:first-child{text-align:center!important;justify-content:center!important;}
 
   @media(min-width:769px){
-    #sidePanel{position:fixed;left:0;top:var(--sideTop,120px);bottom:0;width:230px;overflow-y:auto;background:var(--panel);border-right:1px solid var(--border);padding:10px 8px 24px;z-index:8;scrollbar-width:thin;}
-    #sidePanel .sp-h{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;padding:6px 10px 8px;}
-    #sidePanel button{display:block;width:100%;text-align:left;border:none;background:none;color:var(--text);padding:9px 10px;margin:1px 0;border-radius:9px;font-size:13px;line-height:1.3;cursor:pointer;}
-    #sidePanel button:hover{background:var(--panel2);}
-    #sidePanel button.on{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-weight:700;box-shadow:inset 3px 0 0 var(--accent);}
-    #sidePanel button.sp-all{font-weight:700;border-bottom:1px solid var(--border);border-radius:9px 9px 0 0;margin-bottom:6px;}
-    html.has-side main{margin-left:230px;}
+    #sidePanel{position:fixed;left:0;top:var(--sideTop,120px);bottom:0;width:240px;overflow-y:auto;background:var(--panel);border-right:1px solid var(--border);padding:8px 8px 24px;z-index:8;scrollbar-width:thin;transition:width .15s;}
+    #sidePanel .sp-top{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+    #sidePanel .sp-top b{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+    #sidePanel .sp-tg{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:8px;width:30px;height:28px;cursor:pointer;font-size:15px;line-height:1;}
+    #sidePanel .sp-sec{display:block;width:100%;text-align:left;border:none;background:none;color:var(--text);padding:9px 10px;margin:2px 0;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;}
+    #sidePanel .sp-sec:hover{background:var(--panel2);}
+    #sidePanel .sp-sec.cur{background:color-mix(in srgb,var(--blue) 12%,transparent);color:var(--blue);}
+    #sidePanel .sp-sec::after{content:'▸';float:right;color:var(--text2);}
+    #sidePanel .sp-sec.cur::after{content:'▾';}
+    #sidePanel .sp-box{display:block;width:100%;text-align:left;border:none;background:none;color:var(--text);padding:7px 10px 7px 18px;margin:1px 0;border-radius:8px;font-size:12.5px;line-height:1.3;cursor:pointer;}
+    #sidePanel .sp-box:hover{background:var(--panel2);}
+    #sidePanel .sp-box.on{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-weight:700;box-shadow:inset 3px 0 0 var(--accent);}
+    #sidePanel.sp-closed{width:46px;overflow:hidden;padding:8px;}
+    #sidePanel.sp-closed>*:not(.sp-top){display:none;}
+    #sidePanel.sp-closed .sp-top{border:none;padding:4px 0;justify-content:center;}
+    #sidePanel.sp-closed .sp-top b{display:none;}
+    html.has-side main{margin-left:240px;transition:margin-left .15s;}
+    html.has-side.sp-mini main{margin-left:46px;}
+    html.has-side #navTabs{display:none!important;}
     html.side-one main .view.active .side-u:not(.side-on){display:none!important;}
   }
   @media(max-width:768px){#sidePanel{display:none!important;}}
@@ -2591,48 +2603,60 @@ setInterval(loadAll,10*60*1000);
 })();
 </script>
 <script>
-// PC side panel (9 Oct): active tab ke har box ka naam left me; click = sirf wo box. "Sab dikhao" = pehle jaisa.
 (function(){
-  var PC=matchMedia('(min-width:769px)'),sp=null,busy=false,t=0;
+  var PC=matchMedia('(min-width:769px)'),sp=null,busy=false,t=0,sel=null,selView=null,mo=null;
+  function store(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
+  function load(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
   function title(el){
     if(el.classList.contains('kpis'))return '📊 Summary (KPI)';
     var h=el.querySelector(':scope>.card-head h2')||el.querySelector('h2,h3');
-    var s=h?h.textContent.trim():(el.textContent||'').trim().slice(0,40);
-    return s||'Box';
+    return (h?h.textContent.trim():(el.textContent||'').trim().slice(0,40))||'Box';
   }
   function key(s){return s.replace(/\s*[—-]\s*[\d,.]+.*$/,'').replace(/\(\d+\)/g,'').trim();}
-  function units(v){
-    return [].filter.call(v.querySelectorAll('.card,.kpis'),function(el){
-      return el.offsetParent!==null||el.classList.contains('side-u')?!el.parentElement.closest('.card'):!el.parentElement.closest('.card');
-    }).filter(function(el){return !el.parentElement.closest('.card');});
-  }
-  function store(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
-  function load(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+  function units(v){return [].filter.call(v.querySelectorAll('.card,.kpis'),function(el){return !el.parentElement.closest('.card');});}
   function top(){var n=document.getElementById('nav');var b=n?n.getBoundingClientRect().bottom:120;document.documentElement.style.setProperty('--sideTop',Math.max(0,b)+'px');}
+  function off(){var de=document.documentElement;if(sp)sp.style.display='none';de.classList.remove('has-side','side-one','sp-mini');}
   function build(){
     if(busy)return;busy=true;
     try{
       var de=document.documentElement,v=document.querySelector('main .view.active');
-      if(!PC.matches||!v||document.documentElement.classList.contains('locked')){if(sp)sp.style.display='none';de.classList.remove('has-side','side-one');return;}
+      if(!PC.matches||!v||de.classList.contains('locked')||v.id==='v-settings'){off();return;}
+      if(selView!==v.id){sel=null;selView=v.id;}          // tab badla = poora page
+      var subs=[].slice.call(document.querySelectorAll('#navTabs button'));
       var us=units(v);
-      if(us.length<2){if(sp)sp.style.display='none';de.classList.remove('has-side','side-one');us.forEach(function(u){u.classList.remove('side-u','side-on');});return;}
+      if(subs.length<2&&us.length<2){off();us.forEach(function(u){u.classList.remove('side-u','side-on');});return;}
       if(!sp){sp=document.createElement('aside');sp.id='sidePanel';document.body.appendChild(sp);
-        sp.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var vv=document.querySelector('main .view.active');if(!vv)return;
-          store('side_sel_'+vv.id,b.dataset.k==='__all'?null:b.dataset.k);build();window.scrollTo({top:0,behavior:'smooth'});});}
+        sp.addEventListener('click',function(e){
+          var b=e.target.closest('button');if(!b)return;
+          if(b.classList.contains('sp-tg')){var c=!sp.classList.contains('sp-closed');store('side_closed',c?'1':null);build();return;}
+          if(b.classList.contains('sp-sec')){var i=+b.dataset.i,nb=document.querySelectorAll('#navTabs button')[i];
+            if(nb&&!nb.classList.contains('active')){sel=null;nb.click();}else{sel=null;build();}window.scrollTo({top:0});return;}
+          if(b.classList.contains('sp-box')){sel=(sel===b.dataset.k)?null:b.dataset.k;build();window.scrollTo({top:0,behavior:'smooth'});}
+        });}
+      var closed=load('side_closed')==='1';
+      sp.classList.toggle('sp-closed',closed);de.classList.toggle('sp-mini',closed);
       sp.style.display='';de.classList.add('has-side');top();
-      var sel=load('side_sel_'+v.id),found=false,html='<div class="sp-h">Is tab ke box</div><button class="sp-all'+(sel?'':' on')+'" data-k="__all">📋 Sab dikhao</button>';
+      var found=false,boxes='';
       us.forEach(function(u){var tl=title(u),k=key(tl);u.classList.add('side-u');
-        var on=sel&&k===sel;if(on){found=true;u.classList.add('side-on');u.classList.remove('acc-closed');}else u.classList.remove('side-on');
-        html+='<button data-k="'+k.replace(/"/g,'&quot;')+'"'+(on?' class="on"':'')+'>'+tl.replace(/</g,'&lt;')+'</button>';});
-      if(sel&&!found){store('side_sel_'+v.id,null);html=html.replace('class="sp-all"','class="sp-all on"');}
-      de.classList.toggle('side-one',!!(sel&&found));
+        var on=!!sel&&k===sel;if(on){found=true;u.classList.add('side-on');u.classList.remove('acc-closed');}else u.classList.remove('side-on');
+        boxes+='<button class="sp-box'+(on?' on':'')+'" data-k="'+esc(k)+'">'+esc(tl)+'</button>';});
+      if(sel&&!found)sel=null;
+      de.classList.toggle('side-one',!!sel);
+      var g=document.querySelector('#navGroups button.active');
+      var html='<div class="sp-top"><b>'+esc(g?g.textContent.trim():'Menu')+'</b><button class="sp-tg" title="'+(closed?'Panel kholo':'Panel band karo')+'">'+(closed?'»':'«')+'</button></div>';
+      if(subs.length>=2){subs.forEach(function(nb,i){var cur=nb.classList.contains('active');
+        html+='<button class="sp-sec'+(cur?' cur':'')+'" data-i="'+i+'">'+esc(nb.textContent.trim())+'</button>'+(cur?boxes:'');});}
+      else html+=boxes;
       if(sp.innerHTML!==html)sp.innerHTML=html;
-    }finally{busy=false;}
+    }finally{busy=false;if(mo)mo.takeRecords();}  // apne kiye badlav se dobara build na ho
   }
   function soon(){clearTimeout(t);t=setTimeout(build,120);}
-  new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){if(!(sp&&sp.contains(ms[i].target))){soon();return;}}})
-    .observe(document.body,{childList:true,subtree:true});
-  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#nav'))soon();});
+  mo=new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i],tg=m.target;
+    if(sp&&sp.contains(tg))continue;
+    if(m.type==='attributes'&&!(tg.classList&&(tg.classList.contains('view')||tg===document.documentElement||(tg.closest&&tg.closest('#navTabs,#navGroups')))))continue;
+    soon();return;}});
+  mo.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   addEventListener('scroll',function(){if(sp&&sp.style.display!=='none')top();},{passive:true});
   addEventListener('resize',soon);(PC.addEventListener?PC.addEventListener('change',soon):0);
   soon();
