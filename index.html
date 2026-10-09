@@ -2455,21 +2455,28 @@ setInterval(loadAll,10*60*1000);
     tr.classList.toggle('open');
   });
   function sections(){
-    if(!M.matches)return;
+    // 9 Oct (owner): Overview me ye patti Paisa/Stock/Sales ke sub-tab jaisi - Accounts ke UPAR (nav me, chipki rahe)
+    var nav=document.getElementById('nav'),lg=document.getElementById('acctLegend'),nb=nav&&nav.querySelector(':scope>.sec-chips');
+    if(!M.matches){if(nb)nb.remove();return;}
+    // 9 Oct v2 (owner): ☰ panel hamesha he - box ki chip-patti ki zarurat nahi, hata do (har tab, mobile)
+    if(nb)nb.remove();[].forEach.call(document.querySelectorAll('main .view>.sec-chips'),function(x){x.remove();});return;
     var v=document.querySelector('.view.active');if(!v)return;
+    var onTop=v.id==='v-overview'&&nav&&lg;
+    if(nb&&(!onTop||nb.dataset.view!==v.id)){nb.remove();nb=null;}
+    var host=onTop?nav:v;
     var heads=[].slice.call(v.querySelectorAll(':scope .card>.card-head h2'));
-    var bar=v.querySelector(':scope>.sec-chips');
+    var bar=host.querySelector(':scope>.sec-chips');
     if(heads.length<2){if(bar)bar.remove();return;}
     var sig=heads.map(function(h){return h.textContent;}).join('|');
     if(bar&&bar.dataset.sig===sig)return;if(bar)bar.remove();
-    bar=document.createElement('div');bar.className='sec-chips';bar.dataset.sig=sig;
+    bar=document.createElement('div');bar.className='sec-chips';bar.dataset.sig=sig;bar.dataset.view=v.id;
     function nm(h){return h.textContent.replace(/^[^\w₹]+/,'').replace(/\(.*?\)/g,'').trim();}
     var bases=heads.map(function(h){return nm(h).split(/\s+[—-]\s+/)[0];});
     heads.forEach(function(h,i){var c=document.createElement('button');
       var parts=nm(h).split(/\s+[—-]\s+/),lb=parts[0];if(bases.filter(function(b){return b===lb;}).length>1&&parts[1])lb=parts[1];
       c.textContent=lb.slice(0,24);
       c.onclick=function(){__openCard(h.closest('.card'));var y=h.closest('.card').getBoundingClientRect().top+scrollY-(document.querySelector('nav').offsetHeight+8);scrollTo({top:y,behavior:'smooth'});};bar.appendChild(c);});
-    v.prepend(bar);
+    if(onTop)nav.insertBefore(bar,lg);else v.prepend(bar);
   }
   var up=document.createElement('button');up.id='toTop';up.textContent='⬆';up.onclick=function(){scrollTo({top:0,behavior:'smooth'});};document.body.appendChild(up);
   addEventListener('scroll',function(){up.classList.toggle('show',M.matches&&scrollY>700);},{passive:true});
