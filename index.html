@@ -383,6 +383,14 @@
       box-shadow:0 4px 0 color-mix(in srgb,var(--c) 55%,#000),0 7px 14px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.7);
       text-shadow:none;-webkit-font-smoothing:antialiased;
       transition:transform .08s,box-shadow .08s;}
+    /* 9 Oct v2 (owner): andar ke box chhote + andar khiske, heading bada - fark saaf dikhe */
+    html body #sidePanel .sp-sec{font-size:15.5px!important;padding:12px 14px!important;}
+    html body #sidePanel .sp-sec.shut::after{content:'▸'!important;}
+    html body #sidePanel .sp-kids{margin:2px 0 12px 16px;padding-left:10px;border-left:2px dashed var(--border);}
+    html body #sidePanel .sp-kids .sp-box{margin:0 0 7px!important;width:100%!important;padding:6px 10px!important;
+      font-size:13.5px!important;font-weight:700!important;border-radius:9px!important;
+      box-shadow:0 2px 0 color-mix(in srgb,var(--c) 45%,#000),0 3px 6px rgba(0,0,0,.10)!important;}
+    html body #sidePanel .sp-kids .sp-box.on{transform:translateY(1px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 55%,#000),inset 0 1px 3px rgba(0,0,0,.2)!important;}
     html body #sidePanel .sp-box{padding-left:14px;margin-left:8px;width:calc(100% - 8px);font-size:14.5px;}
     html body #sidePanel .sp-sec:hover,html body #sidePanel .sp-box:hover{transform:translateY(-1px);}
     html body #sidePanel .sp-sec:active,html body #sidePanel .sp-box:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 55%,#000),0 2px 5px rgba(0,0,0,.14);}
@@ -2682,6 +2690,7 @@ setInterval(loadAll,10*60*1000);
 </script>
 <script>
 (function(){
+  var shut=null;  // jis view ke sub-tab ke box band kiye (9 Oct)
   var PC=matchMedia('(min-width:769px)'),sp=null,busy=false,t=0,sel=null,selView=null,mo=null;
   function store(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
   function load(k){try{return localStorage.getItem(k);}catch(e){return null;}}
@@ -2710,7 +2719,9 @@ setInterval(loadAll,10*60*1000);
           var b=e.target.closest('button');if(!b)return;
           if(b.classList.contains('sp-tg')){var c=!sp.classList.contains('sp-closed');store('side_closed',c?'1':null);build();return;}
           if(b.classList.contains('sp-sec')){var i=+b.dataset.i,nb=document.querySelectorAll('#navTabs button')[i];
-            if(nb&&!nb.classList.contains('active')){sel=null;nb.click();}else{sel=null;build();}window.scrollTo({top:0});return;}
+            var vv=document.querySelector('main .view.active');
+            if(nb&&!nb.classList.contains('active')){sel=null;shut=null;nb.click();}
+            else{sel=null;shut=(vv&&shut!==vv.id)?vv.id:null;build();}window.scrollTo({top:0});return;}
           if(b.classList.contains('sp-box')){sel=(sel===b.dataset.k)?null:b.dataset.k;build();window.scrollTo({top:0,behavior:'smooth'});}
         });}
       var closed=load('side_closed')==='1';
@@ -2725,7 +2736,8 @@ setInterval(loadAll,10*60*1000);
       var g=document.querySelector('#navGroups button.active');
       var html='<div class="sp-top"><b>'+esc(g?g.textContent.trim():'Menu')+'</b><button class="sp-tg" title="'+(closed?'Panel kholo':'Panel band karo')+'">'+(closed?'»':'«')+'</button></div>';
       if(subs.length>=2){subs.forEach(function(nb,i){var cur=nb.classList.contains('active');
-        html+='<button class="sp-sec'+(cur?' cur':'')+'" data-i="'+i+'">'+esc(nb.textContent.trim())+'</button>'+(cur?boxes:'');});}
+        var shutNow=cur&&shut===v.id;  // khula sub-tab dobara dabaya = andar ke box band
+        html+='<button class="sp-sec'+(cur?' cur':'')+(shutNow?' shut':'')+'" data-i="'+i+'">'+esc(nb.textContent.trim())+'</button>'+(cur&&!shutNow?'<div class="sp-kids">'+boxes+'</div>':'');});}
       else html+=boxes;
       if(sp.innerHTML!==html)sp.innerHTML=html;
     }finally{busy=false;if(mo)mo.takeRecords();}  // apne kiye badlav se dobara build na ho
@@ -2739,7 +2751,7 @@ setInterval(loadAll,10*60*1000);
   addEventListener('scroll',function(){if(sp&&sp.style.display!=='none')top();},{passive:true});
   addEventListener('resize',soon);(PC.addEventListener?PC.addEventListener('change',soon):0);
   // 9 Oct (owner): upar Overview/Paisa/Stock/Sales dabao = panel ka chuna hua box hatao, us tab ka poora page
-  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#navGroups button')){sel=null;soon();}},true);
+  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#navGroups button')){sel=null;shut=null;soon();}},true);
   soon();
 })();
 </script>
