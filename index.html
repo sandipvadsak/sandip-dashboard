@@ -985,6 +985,7 @@ function renderOverview(){
       </tbody></table></div></div>`;})()}
     ${(()=>{const ig=new Set((DATA.oosIgnore||[]).map(x=>x.account+'|'+x.amazon_sku));const all=(DATA.oosList||[]).filter(x=>(!ACCT||x.account===ACCT)&&!ig.has(x.account+'|'+x.amazon_sku)).sort((a,b)=>(+b.units_30d||0)-(+a.units_30d||0)||(+b.fba_qty||0)-(+a.fba_qty||0));
       const closed=x=>!!x.reason&&x.reason!=='OOS';
+      all.splice(0,all.length,...all.filter(x=>closed(x)||x.channel!=='FBA'||+x.inbound_qty>0));  /* 9 Oct owner: FBA OOS + inbound 0 = mat dikhao */
       const fl={all:()=>true,oos:x=>!closed(x),closed:closed,fba:x=>x.channel==='FBA'&&!closed(x),fbm:x=>x.channel==='FBM'};
       const F=fl[window.OOSF]?window.OOSF:'all',os=all.filter(fl[F]),cnt=k=>all.filter(fl[k]).length;
       if(!all.length)return `<div class="card"><div class="card-head"><h2>📦 Out of Stock / Listing Band — 0</h2><span class="hint">sale wali koi listing out of stock nahi · koi band listing me FBA stock nahi · har ghante check</span></div></div>`;
