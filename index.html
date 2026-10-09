@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="ecom-192.png?v=4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Sandip · Amazon Business Dashboard</title>
+<title>Amazon Business</title>
 <script>try{var t=localStorage.getItem("dash_theme");if(t==="light"||(!t&&matchMedia("(max-width:768px)").matches))document.documentElement.setAttribute("data-theme","light");}catch(e){}</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -342,9 +342,9 @@
     margin-bottom:22px!important;}
   html body main .kpis .kpi{border-radius:14px!important;
     box-shadow:0 4px 0 color-mix(in srgb,var(--blue) 22%,var(--border)),0 9px 18px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.6)!important;}
-  html body main .card>.card-head h2{
-    text-shadow:0 1px 0 color-mix(in srgb,currentColor 55%,#000),0 2px 0 color-mix(in srgb,currentColor 45%,#000),
-                0 3px 0 color-mix(in srgb,currentColor 35%,#000),0 4px 6px rgba(0,0,0,.28)!important;}
+  /* 9 Oct v2 (owner): 3D shadow se title padhne me dikkat - ab saaf, gehre rang ke akshar */
+  html body main .card>.card-head h2{text-shadow:none!important;-webkit-font-smoothing:antialiased;
+    color:color-mix(in srgb,var(--blue) 70%,#000)!important;font-weight:800!important;letter-spacing:.1px;}
   html body main .kpis .kpi .value{text-shadow:0 1px 0 rgba(0,0,0,.18),0 2px 0 rgba(0,0,0,.12),0 3px 5px rgba(0,0,0,.22);}
   .acct-badge{
     background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 70%,#fff) 0%,var(--ac) 55%,color-mix(in srgb,var(--ac) 82%,#000) 100%)!important;
@@ -356,9 +356,15 @@
   #acctLegend .lg.acct-badge:hover{transform:translateY(-1px);}
   #acctLegend .lg.acct-badge:active{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--ac) 55%,#000),0 2px 4px rgba(0,0,0,.2)!important;}
   #acctLegend{padding-bottom:16px!important;}
-  html[data-theme="dark"] body main .card,html[data-theme="dark"] body main .kpis .kpi{
+  /* 9 Oct (owner): account chip ki row beech me + chip bade (PC) */
+  @media(min-width:769px){
+    #acctLegend{justify-content:center!important;gap:10px!important;padding-top:14px!important;}
+    #acctLegend .lg.acct-badge{font-size:14px!important;padding:7px 18px!important;letter-spacing:.4px;}
+    #acctLegend .lgl{font-size:13px!important;font-weight:600;}
+  }
+  html:not([data-theme="light"]) body main .card,html:not([data-theme="light"]) body main .kpis .kpi{
     box-shadow:0 5px 0 rgba(0,0,0,.55),0 12px 24px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)!important;}
-  html[data-theme="dark"] body main .card>.card-head h2{text-shadow:0 1px 0 rgba(0,0,0,.6),0 2px 0 rgba(0,0,0,.5),0 3px 0 rgba(0,0,0,.4),0 4px 6px rgba(0,0,0,.6)!important;}
+  html:not([data-theme="light"]) body main .card>.card-head h2{text-shadow:none!important;color:color-mix(in srgb,var(--blue) 22%,#fff)!important;}
   @media(max-width:768px){html body main .card{box-shadow:0 4px 0 color-mix(in srgb,var(--blue) 20%,var(--border)),0 8px 16px rgba(0,0,0,.10)!important;margin-bottom:16px!important;}}
 
   @media(min-width:769px){
@@ -385,27 +391,25 @@
       text-shadow:0 1px 1px rgba(0,0,0,.35);
       box-shadow:0 2px 0 color-mix(in srgb,var(--c) 55%,#000),0 4px 10px rgba(0,0,0,.2),inset 0 2px 4px rgba(0,0,0,.18);transform:translateY(2px);}
     html body #sidePanel .sp-sec::after{color:inherit;}
-    html[data-theme="dark"] body #sidePanel .sp-sec:not(.cur),html[data-theme="dark"] body #sidePanel .sp-box:not(.on){
+    html:not([data-theme="light"]) body #sidePanel .sp-sec:not(.cur),html:not([data-theme="light"]) body #sidePanel .sp-box:not(.on){
       color:color-mix(in srgb,var(--c) 35%,#fff);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,#111),color-mix(in srgb,var(--c) 12%,#0b0f17));
       text-shadow:none;box-shadow:0 4px 0 color-mix(in srgb,var(--c) 40%,#000),0 7px 14px rgba(0,0,0,.4);}
-    /* Upar ke group tab: bade 3D box, poori chaudai me */
-    html body #navGroups{display:flex!important;justify-content:center;gap:16px!important;padding:14px 28px 12px!important;overflow:visible;background:none!important;border:none!important;box-shadow:none!important;}
-    html body #navGroups button{--c:#2563eb;flex:0 1 210px;display:flex;align-items:center;justify-content:center;gap:9px;
-      padding:13px 26px!important;font-size:17px!important;font-weight:800!important;border-radius:14px!important;
-      color:color-mix(in srgb,var(--c) 82%,#000)!important;border:1px solid color-mix(in srgb,var(--c) 45%,transparent)!important;
-      background:linear-gradient(180deg,color-mix(in srgb,var(--c) 12%,#fff),color-mix(in srgb,var(--c) 26%,#fff))!important;
-      box-shadow:0 5px 0 color-mix(in srgb,var(--c) 55%,#000),0 9px 18px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.7)!important;
-      text-shadow:0 1px 0 rgba(255,255,255,.75),0 2px 3px rgba(0,0,0,.2);transition:transform .08s;}
+    /* Upar ke group tab (9 Oct v2, owner): ek saaf segmented bar - beech me, chuna hua tab apne rang me */
+    html body #navGroups{display:flex!important;justify-content:center;gap:4px!important;width:max-content;max-width:100%;
+      margin:12px auto 10px!important;padding:5px!important;border-radius:14px!important;overflow:visible;
+      background:var(--panel)!important;border:1px solid var(--border)!important;
+      box-shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.06)!important;}
+    html body #navGroups button{--c:#2563eb;display:flex;align-items:center;justify-content:center;gap:8px;min-width:150px;
+      padding:10px 22px!important;font-size:15px!important;font-weight:700!important;border-radius:10px!important;
+      color:var(--text2)!important;background:transparent!important;border:none!important;box-shadow:none!important;text-shadow:none;
+      transition:background .15s,color .15s;}
     html body #navGroups button:nth-child(2){--c:#16a34a;}html body #navGroups button:nth-child(3){--c:#ea580c;}
     html body #navGroups button:nth-child(4){--c:#9333ea;}html body #navGroups button:nth-child(5){--c:#0891b2;}
     html body #navGroups button.set-btn{--c:#64748b;}
-    html body #navGroups button .gi{font-size:20px;filter:none!important;opacity:1!important;}
-    html body #navGroups button:hover{transform:translateY(-2px);}
-    html body #navGroups button.active{color:#fff!important;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 80%,#fff),var(--c))!important;
-      text-shadow:0 1px 0 rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.3);transform:translateY(3px);
-      box-shadow:0 2px 0 color-mix(in srgb,var(--c) 55%,#000),0 4px 10px rgba(0,0,0,.22),inset 0 2px 5px rgba(0,0,0,.2)!important;}
-    html[data-theme="dark"] body #navGroups button:not(.active){color:color-mix(in srgb,var(--c) 55%,#fff)!important;
-      background:linear-gradient(180deg,color-mix(in srgb,var(--c) 24%,#111),color-mix(in srgb,var(--c) 12%,#0b0f17))!important;text-shadow:0 2px 3px rgba(0,0,0,.6);}
+    html body #navGroups button .gi{font-size:18px;filter:none!important;opacity:1!important;}
+    html body #navGroups button:hover{color:var(--c)!important;background:color-mix(in srgb,var(--c) 9%,transparent)!important;}
+    html body #navGroups button.active{color:#fff!important;background:var(--c)!important;
+      box-shadow:0 2px 6px color-mix(in srgb,var(--c) 45%,transparent),inset 0 1px 0 rgba(255,255,255,.25)!important;}
   }
 nav#nav{position:sticky;top:var(--hdrH,0px);z-index:9;}
 /* account chips ek hi line me (P&L Accounts column) - 1 Oct */
@@ -526,7 +530,7 @@ td:has(.acct-badge){white-space:nowrap!important;max-width:none!important;overfl
 </head>
 <body>
 <div id="lockScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
-  <div style="font-size:22px;font-weight:600">SANDIP · <span style="color:var(--accent)">Amazon Business</span></div>
+  <div style="font-size:22px;font-weight:600"><span style="color:var(--accent)">Amazon Business</span></div>
   <div style="color:var(--text2);font-size:13px">Email aur password se login karo</div>
   <input id="lockEmail" type="email" name="x_mail" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Email" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:12px 16px;border-radius:9px;font-size:16px;width:240px;text-align:center">
   <input id="lockInput" type="text" name="x_pin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" placeholder="Password" style="-webkit-text-security:disc;text-security:disc;background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:12px 16px;border-radius:9px;font-size:16px;width:240px;text-align:center" onkeydown="if(event.key==='Enter')tryUnlock()">
@@ -534,7 +538,7 @@ td:has(.acct-badge){white-space:nowrap!important;max-width:none!important;overfl
   <div id="lockMsg" style="color:var(--red);font-size:13px;height:18px"></div>
 </div>
 <header>
-  <h1>SANDIP · <span>Amazon Business</span></h1>
+  <h1><span>Amazon Business</span></h1>
   <div class="hright">
     <select id="acctFilter" onchange="onAcctChange()"><option value="">All Accounts</option></select>
     <div class="meta" id="meta">loading…</div>
