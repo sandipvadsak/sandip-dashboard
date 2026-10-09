@@ -483,6 +483,8 @@
     html body main{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;}
     /* 9 Oct (owner): scroll pe Accounts wali patti bilkul upar chipki rahe (header mobile pe scroll ho jaata he) */
     html body nav#nav{position:sticky!important;top:0!important;z-index:120!important;padding-top:env(safe-area-inset-top)!important;}
+    /* 9 Oct (owner): sub-tab (Paisa/Stock/Sales) ki patti mobile pe nahi - ☰ panel me hi sub-tab + box */
+    html body #navTabs{display:none!important;}
     /* 9 Oct v2 (owner): "Amazon Business" dono taraf ke button ke BEECH me, ek hi line me */
     html body header{display:grid!important;grid-template-columns:auto auto 1fr auto;grid-template-areas:"g g g g" "t n h l" "m m m m";
       align-items:center;column-gap:8px;row-gap:6px;}
