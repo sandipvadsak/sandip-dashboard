@@ -978,6 +978,38 @@ function renderOverview(){
       ${ACCT?'':`<div class="kpi red" onclick="go('slow')" style="cursor:pointer" title="Slow Moving tab kholo"><div class="label">Capital Locked</div><div class="value neg">${inr(lockedCapital)}</div><div class="sub">${lockedItems} slow items</div></div>`}
       ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
     </div>
+    ${(()=>{const comp=fAcct(DATA.compPricing||[]);return `
+    ${comp.length?`<div class="card"><div class="card-head"><h2>🔴 Competitor Alert — Buy Box Lost / Undercut</h2><span class="hint">UNDERCUT = competitor sasta bech raha · BB LOST = buy box me aap ho hi nahi · live pricing API se</span></div>
+    <div class="table-scroll"><table><thead><tr>
+      ${sth('v-overview','account','Account','competitor_price')}
+      ${sth('v-overview','product_name','Product','competitor_price')}
+      ${sthN('v-overview','num_sellers','Sellers','competitor_price')}
+      ${sthN('v-overview','our_stock','WH Stock','competitor_price')}
+      ${sthN('v-overview','my_price','My Price','competitor_price')}
+      ${sthN('v-overview','competitor_price','Comp Price','competitor_price')}
+      <th style="text-align:center">Status</th>
+      <th style="text-align:center">Amazon</th>
+    </tr></thead><tbody>
+    ${sorted(comp.filter(x=>+x.my_price===0||+x.competitor_price<+x.my_price),'v-overview','competitor_price','asc').map(r=>{
+      const myP = +r.my_price;
+      const compP = +r.competitor_price;
+      const isBBLost = myP === 0; // pricing API me hamara offer mila hi nahi
+      const diff = isBBLost ? 'BUY BOX LOST' : `−₹${num(myP-compP)} (${Math.round((myP-compP)/myP*100)}%)`;
+      const stockVal = +r.our_stock;
+      const stockLabel = stockVal < 0 ? '?' : stockVal===0 ? '<span style="color:var(--neg)">0</span>' : num(stockVal);
+      return `<tr>
+        <td><b>${r.account}</b></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${(r.product_name||r.vyapar_item||r.asin||'—').substring(0,45)}</td>
+        <td class="num">${r.num_sellers||1}</td>
+        <td class="num">${stockLabel}</td>
+        <td class="num pos"><b>${isBBLost?'—':'₹'+num(myP)}</b></td>
+        <td class="num neg"><b>₹${num(compP)}</b></td>
+        <td style="text-align:center"><span class="pill ${isBBLost?'p-none':'p-now'}">${diff}</span></td>
+        <td style="text-align:center">${r.asin?`<a href="https://www.amazon.in/dp/${r.asin}" target="_blank" style="color:var(--accent);font-size:11px">View ↗</a>`:'—'}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div></div>`
+    :''}
+`;})()}
     ${(()=>{const fr=(DATA.fbmRecv||[]).filter(x=>!ACCT||x.account===ACCT);if(!fr.length)return'';
       return `<div class="card" style="border:2px solid var(--red)"><div class="card-head"><h2>🔁 FBA me maal aaya par listing FBM pe — ${fr.length}</h2><span class="hint">Seller Central → Inventory → us SKU ko "Change to Fulfilled by Amazon" karo · har ghante check</span></div>
       <div class="table-scroll"><table><thead><tr><th>Account</th><th>SKU</th><th>Shipment</th><th>Status</th><th class="num">FBA me mila</th><th class="num">FBM qty</th><th>Kab se</th></tr></thead><tbody>
