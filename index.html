@@ -419,6 +419,17 @@
     html body #navGroups button.active{color:#fff!important;background:var(--c)!important;
       box-shadow:0 2px 6px color-mix(in srgb,var(--c) 45%,transparent),inset 0 1px 0 rgba(255,255,255,.25)!important;}
   }
+
+  @media(min-width:769px){
+    html.hdr-merged header{display:grid!important;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;
+      padding:10px 26px!important;border-bottom:none!important;
+      background:linear-gradient(180deg,var(--panel) 0%,color-mix(in srgb,var(--blue) 5%,var(--panel)) 100%)!important;
+      box-shadow:0 1px 0 var(--border),0 6px 20px rgba(0,0,0,.07)!important;}
+    html.hdr-merged header h1{justify-self:start;font-size:21px!important;font-weight:800!important;letter-spacing:-.2px;}
+    html.hdr-merged header .hright{justify-self:end;}
+    html.hdr-merged header #navGroups{margin:0!important;justify-self:center;}
+    html.hdr-merged #nav{border-top:none!important;}
+  }
 nav#nav{position:sticky;top:var(--hdrH,0px);z-index:9;}
 /* account chips ek hi line me (P&L Accounts column) - 1 Oct */
 td:has(.acct-badge){white-space:nowrap!important;max-width:none!important;overflow:visible!important;}
@@ -2753,6 +2764,24 @@ setInterval(loadAll,10*60*1000);
   // 9 Oct (owner): upar Overview/Paisa/Stock/Sales dabao = panel ka chuna hua box hatao, us tab ka poora page
   document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#navGroups button')){sel=null;shut=null;soon();}},true);
   soon();
+})();
+</script>
+<script>
+(function(){
+  // navGroups ko PC pe header ke beech me le aao, mobile pe wapas nav me (wahi element - click handler waise hi)
+  var PC=matchMedia('(min-width:769px)'),home=null;
+  function place(){
+    var ng=document.getElementById('navGroups'),hd=document.querySelector('header'),nav=document.getElementById('nav');
+    if(!ng||!hd||!nav)return;
+    if(!home){home=document.createComment('navGroups-home');ng.parentNode.insertBefore(home,ng);}
+    var hr=hd.querySelector('.hright'),pc=innerWidth>=769,moved=false;
+    if(pc){if(ng.parentNode!==hd){hd.insertBefore(ng,hr||null);moved=true;}document.documentElement.classList.add('hdr-merged');}
+    else{if(ng.parentNode===hd&&home.parentNode){home.parentNode.insertBefore(ng,home.nextSibling);moved=true;}document.documentElement.classList.remove('hdr-merged');}
+    if(moved)setTimeout(function(){window.dispatchEvent(new Event('resize'));},0);  // sirf jagah badli tab (loop nahi)
+  }
+  addEventListener('resize',place);
+  if(document.readyState!=='loading')place();else document.addEventListener('DOMContentLoaded',place);
+  setTimeout(place,500);(PC.addEventListener?PC.addEventListener('change',place):0);
 })();
 </script>
 <script>
