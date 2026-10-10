@@ -876,7 +876,7 @@ async function loadAll(){
       productPnl:'product_pnl?order=net_profit.asc&limit=2000',
       slow:'slow_moving?order=stock_value.desc',
       fbaAlerts:'fba_inbound_alert?order=potentially_lost.desc',
-      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',compOos:'competitor_fba_oos?order=oos_since.desc&limit=500',compWatch:'competitor_fba_offers?select=account,asin,updated_at&status=eq.active&limit=5000',fbmRecv:'fbm_receiving_alert?order=first_seen.desc&limit=500',oosList:'oos_listings?select=*&limit=2000',oosIgnore:'oos_ignore?select=account,amazon_sku&limit=5000',
+      pullLog:'daily_pull_today?order=sort_order.asc',inboundShort:'fba_inbound_shortage?order=claim_deadline.asc',inboundIgnore:'fba_inbound_ignore?select=shipment_id',acctHealth:'account_health?select=account,ahr_score,ahr_status,counts,checked_at&order=account.asc',acctAck:'account_health_ack?select=*',skuVelAcct:'sku_velocity_acct?order=per_day.desc&limit=3000',orderCnt:'order_count_month?select=*',dailyAcct:'daily_sales_acct?select=*&limit=2000',compOos:'competitor_fba_oos?order=oos_since.desc&limit=500',compWatch:'competitor_fba_offers?select=account,asin,updated_at&status=eq.active&limit=5000',fbmRecv:'fbm_receiving_alert?order=first_seen.desc&limit=500',oosList:'oos_listings?select=*&limit=2000',oosIgnore:'oos_ignore?select=account,amazon_sku&limit=5000',srwCheck:'seller_rewards_check?select=*&order=check_date.desc&limit=60',
       fbaOverdue:'fba_inbound_overdue?order=days_since_shipped.desc',
       fbaShipments:'fba_shipment_summary?order=days_since_shipped.desc',
       amzInbound:'amazon_inbound_totals',
@@ -939,6 +939,17 @@ function buildAlerts(){
     alerts.unshift({id:'acct_health_'+need.map(function(x){return x.account+x.metric+x.count;}).join('_'),level:'critical',
       title:'🛡️ '+need.length+' naye account health violation - submit karna baaki',
       body:need.slice(0,8).map(function(x){return x.account+' · '+x.label+' ('+x.count+')';}).join('\n')+(need.length>8?'\n+'+(need.length-8)+' aur':'')+'\nSeller Central → Account Health me appeal/document submit karke dashboard pe "✓ Submit kar diya" dabao'});
+  })();
+
+  // 🎁 Seller Rewards: aaj jin account me check baaki - bell me (10 Oct)
+  (function(){
+    const AC=['AVEDIA','BRAINLE','MULZI','ZOTIMO','ACMUST','ARKZO','PIVDO','KIDOCA','WISKA'];
+    const td=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
+    const done=new Set((D.srwCheck||[]).filter(x=>x.check_date===td).map(x=>x.account));
+    const left=AC.filter(a=>!done.has(a));if(!left.length)return;
+    alerts.push({id:'srw_'+td+'_'+left.join('_'),level:'critical',
+      title:`🎁 ${left.length} account me Seller Rewards check karna baaki — naya mission join / start karo`,
+      body:left.join(' · ')+'<br>Seller Central → Growth → Seller Rewards · check karke dashboard pe ✓ dabao'});
   })();
 
   // FBA me maal receive hua par listing FBM pe (7 Oct) - convert karo
@@ -1087,7 +1098,8 @@ function notifTarget(id){
   if(id.startsWith('inbshort_'))return'fba_inbound';  // closed shipment me kam maal
   if(id.startsWith('acct_health_'))return'overview';  // account health
   if(id.startsWith('compoos_'))return'overview';  // competitor FBA khatam
-  if(id.startsWith('fbmrecv_'))return'overview';  // FBA me maal, listing FBM      // removal nahi mila
+  if(id.startsWith('fbmrecv_'))return'overview';  // FBA me maal, listing FBM
+  if(id.startsWith('srw_'))return'overview';  // Seller Rewards checklist      // removal nahi mila
   if(id.startsWith('reorder_'))return'reorder';
   if(id.startsWith('nc_'))return'returns';           // FC missing units
   if(id.startsWith('strand_'))return'returns';       // stranded
@@ -1174,6 +1186,13 @@ function renderOverview(){
       ${ACCT?'':`<div class="kpi red" onclick="go('slow')" style="cursor:pointer" title="Slow Moving tab kholo"><div class="label">Capital Locked</div><div class="value neg">${inr(lockedCapital)}</div><div class="sub">${lockedItems} slow items</div></div>`}
       ${ACCT?'':`<div class="kpi red" onclick="go('reorder')" style="cursor:pointer" title="Reorder tab kholo"><div class="label">Reorder Now</div><div class="value neg">${rNow}</div><div class="sub">${rSoon} soon</div></div>`}
     </div>
+    ${(()=>{const AC=['AVEDIA','BRAINLE','MULZI','ZOTIMO','ACMUST','ARKZO','PIVDO','KIDOCA','WISKA'].filter(a=>!ACCT||a===ACCT);
+      const td=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
+      const done={};(DATA.srwCheck||[]).filter(x=>x.check_date===td).forEach(x=>done[x.account]=x);
+      const left=AC.filter(a=>!done[a]);const ok=!left.length;
+      return `<div class="card" id="srwCard" style="border:2px solid ${ok?'var(--green,#16a34a)':'var(--red)'}"><div class="card-head" style="${ok?'':'background:color-mix(in srgb,var(--red) 10%,var(--panel))'}"><h2>🎁 Seller Rewards — ${ok?'aaj sab check ho gaye ✓':left.length+' account me aaj check karna baaki'}</h2><span class="hint">Seller Central → Growth → Seller Rewards · naya mission join / start karo · phir yahan ✓ dabao · roz subah reset</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:14px 16px">${AC.map(a=>{const d=done[a];
+        return `<button type="button" onclick="srwToggle('${a}')" title="${d?('✓ '+(d.checked_by||'')+' '+new Date(d.checked_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+' - dobara dabao = undo'):'Seller Central me check karke dabao'}" style="display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:12px;cursor:pointer;font-weight:800;font-size:13.5px;border:2px solid ${d?'var(--green,#16a34a)':'var(--red)'};background:${d?'color-mix(in srgb,var(--green,#16a34a) 12%,var(--panel))':'color-mix(in srgb,var(--red) 8%,var(--panel))'};color:var(--text)"><span class="acct-badge" data-acct="${a}" style="--ac:var(--ac-${a})">${a}</span>${d?'✅':'⏳ baaki'}</button>`;}).join('')}</div></div>`;})()}
     ${(()=>{const fr=(DATA.fbmRecv||[]).filter(x=>!ACCT||x.account===ACCT);
       if(!fr.length)return `<div class="card"><div class="card-head"><h2>🔁 FBA me maal aaya par listing FBM pe — 0</h2><span class="hint">abhi koi nahi · har account ki receiving shipment har ghante check hoti he · maal aate hi listing FBM pe hui to yahan dikhegi</span></div></div>`;
       return `<div class="card" style="border:2px solid var(--red)"><div class="card-head"><h2>🔁 FBA me maal aaya par listing FBM pe — ${fr.length}</h2><span class="hint">Seller Central → Inventory → us SKU ko "Change to Fulfilled by Amazon" karo · har ghante check</span></div>
@@ -2903,6 +2922,26 @@ setInterval(loadAll,10*60*1000);
 })();
 </script>
 <script>
+// 🎁 Seller Rewards ✓ (10 Oct): dabao = aaj ka check done; dobara dabao = undo. Dono user ko ek hi list dikhe.
+async function srwToggle(a){
+  var td=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
+  var list=DATA.srwCheck=DATA.srwCheck||[];var have=list.find(function(x){return x.account===a&&x.check_date===td;});
+  try{
+    if(have){
+      if(!confirm(a+' ka aaj ka ✓ hatana he?'))return;
+      var r=await fetch(SUPABASE_URL+'/rest/v1/seller_rewards_check?account=eq.'+encodeURIComponent(a)+'&check_date=eq.'+td,{method:'DELETE',headers:H});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      DATA.srwCheck=list.filter(function(x){return x!==have;});
+    }else{
+      var s=null;try{s=JSON.parse(localStorage.getItem('dash_sb_session')||sessionStorage.getItem('dash_sb_session')||'null');}catch(e){}
+      var row={account:a,check_date:td,checked_by:(s&&s.user&&s.user.email||'').split('@')[0],checked_at:new Date().toISOString()};
+      var r2=await fetch(SUPABASE_URL+'/rest/v1/seller_rewards_check',{method:'POST',headers:Object.assign({'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},H),body:JSON.stringify(row)});
+      if(!r2.ok)throw new Error('HTTP '+r2.status);
+      list.push(row);
+    }
+    renderOverview();if(typeof buildAlerts==='function')try{buildAlerts();}catch(e){}
+  }catch(e){alert('Save nahi hua: '+e.message);}
+}
 async function oosHide(b){
   var a=b.dataset.oa,s=decodeURIComponent(b.dataset.os);
   if(!confirm(a+' · '+s+'\n\nYe listing band he? Hamesha ke liye Out of Stock list se hata dein?'))return;
